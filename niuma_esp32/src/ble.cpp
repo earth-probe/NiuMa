@@ -63,18 +63,51 @@ std::string my_to_string(int i) {
   ss << i;
   return ss.str();
 }
+
+
+extern float accXTask0;
+extern float accYTask0;
+extern float accZTask0;
+extern float gyroXTask0;
+extern float gyroYTask0;
+extern float gyroZTask0;
+extern float magnetXTask0;
+extern float magnetYTask0;
+extern float magnetZTask0;
+
+
+
+static const long constWriteBLEIntervalMS = 100;
+
 void runBleTransimit(void)
 {
-  int hallValue = hallRead();
   if (deviceConnected) {
-    DUMP_I(hallValue);
-    DUMP_I(pTxCharacteristic);
-    std::string halVal = "{h:";
-    halVal += my_to_string(hallValue);
-    halVal += "}\r\n";
-    pTxCharacteristic->setValue(halVal);
-    pTxCharacteristic->notify();
-    delay(100); // bluetooth stack will go into congestion, if too many packets are sent
+    /*
+    {
+      int hallValue = hallRead();
+      DUMP_I(hallValue);
+      DUMP_I(pTxCharacteristic);
+      std::string halVal = "{h:";
+      halVal += my_to_string(hallValue);
+      halVal += "}\r\n";
+      pTxCharacteristic->setValue(halVal);
+      pTxCharacteristic->notify();
+    }
+    */
+      static long previousMillis = 0;
+      auto nowMS = millis();
+      if(nowMS - previousMillis < constWriteBLEIntervalMS) {
+        return;
+      }
+      previousMillis = nowMS;
+
+    {
+      std::string imuVal = "{ax:";
+      imuVal += my_to_string(accXTask0);
+      imuVal += "}\r\n";
+      pTxCharacteristic->setValue(imuVal);
+      pTxCharacteristic->notify();
+    }
   }
   if (!deviceConnected && oldDeviceConnected) {
     delay(500); // give the bluetooth stack the chance to get things ready
