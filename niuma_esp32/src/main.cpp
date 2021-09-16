@@ -39,6 +39,7 @@ float magnetZTask0;
 
 void taskVarTrans(void)
 {
-  const TickType_t xTicksToWait = 5U;
+  const TickType_t xTicksToWait = 1U;
   auto xStatus = xQueueReceive(axQueue, &accXTask0, xTicksToWait);
+  DUMP_I(xStatus);
 }

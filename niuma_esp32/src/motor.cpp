@@ -77,10 +77,13 @@ void readIMU(void) {
 
   accX = imu.calcAccel(imu.ax);
   auto axStatus = xQueueSend(axQueue, &accX, 0);
+  DUMP_I(axStatus)
   accY = imu.calcAccel(imu.ay);
   auto ayStatus = xQueueSend(ayQueue, &accY, 0);  
+  DUMP_I(ayStatus)
   accZ = imu.calcAccel(imu.az);
   auto azStatus = xQueueSend(azQueue, &accZ, 0);
+  DUMP_I(azStatus)
 
   magnetX = imu.calcMag(imu.mx);
   magnetY = imu.calcMag(imu.my);
