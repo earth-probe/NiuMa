@@ -64,7 +64,13 @@ std::string my_to_string(int i) {
   return ss.str();
 }
 
+std::string my_to_string_f(float f) {
+  std::stringstream ss;
+  ss << f;
+  return ss.str();
+}
 
+/*
 extern float accXTask0;
 extern float accYTask0;
 extern float accZTask0;
@@ -74,40 +80,99 @@ extern float gyroZTask0;
 extern float magnetXTask0;
 extern float magnetYTask0;
 extern float magnetZTask0;
+*/
 
-
+extern float accX;
+extern float accY;
+extern float accZ;
+extern float gyroX;
+extern float gyroY;
+extern float gyroZ;
+extern float magnetX;
+extern float magnetY;
+extern float magnetZ;
 
 static const long constWriteBLEIntervalMS = 100;
+
+void reportIMU(void)
+{
+/*  
+  {
+    std::string imuVal = "{ax:";
+    imuVal += my_to_string_f(accX);
+    imuVal += "}\r\n";
+    pTxCharacteristic->setValue(imuVal);
+    pTxCharacteristic->notify();
+  }
+  {
+    std::string imuVal = "{ay:";
+    imuVal += my_to_string_f(accY);
+    imuVal += "}\r\n";
+    pTxCharacteristic->setValue(imuVal);
+    pTxCharacteristic->notify();
+  }
+  {
+    std::string imuVal = "{az:";
+    imuVal += my_to_string_f(accZ);
+    imuVal += "}\r\n";
+    pTxCharacteristic->setValue(imuVal);
+    pTxCharacteristic->notify();
+  }
+  {
+    std::string imuVal = "{gx:";
+    imuVal += my_to_string_f(gyroX);
+    imuVal += "}\r\n";
+    pTxCharacteristic->setValue(imuVal);
+    pTxCharacteristic->notify();
+  }
+  {
+    std::string imuVal = "{gy:";
+    imuVal += my_to_string_f(gyroY);
+    imuVal += "}\r\n";
+    pTxCharacteristic->setValue(imuVal);
+    pTxCharacteristic->notify();
+  }
+  {
+    std::string imuVal = "{gz:";
+    imuVal += my_to_string_f(gyroZ);
+    imuVal += "}\r\n";
+    pTxCharacteristic->setValue(imuVal);
+    pTxCharacteristic->notify();
+  }
+  {
+    std::string imuVal = "{mx:";
+    imuVal += my_to_string_f(magnetX);
+    imuVal += "}\r\n";
+    pTxCharacteristic->setValue(imuVal);
+    pTxCharacteristic->notify();
+  }
+*/
+  {
+    std::string imuVal = "{my:";
+    imuVal += my_to_string_f(magnetY);
+    imuVal += "}\r\n";
+    pTxCharacteristic->setValue(imuVal);
+    pTxCharacteristic->notify();
+  }
+  {
+    std::string imuVal = "{mz:";
+    imuVal += my_to_string_f(magnetZ);
+    imuVal += "}\r\n";
+    pTxCharacteristic->setValue(imuVal);
+    pTxCharacteristic->notify();
+  }
+}
 
 void runBleTransimit(void)
 {
   if (deviceConnected) {
-    /*
-    {
-      int hallValue = hallRead();
-      DUMP_I(hallValue);
-      DUMP_I(pTxCharacteristic);
-      std::string halVal = "{h:";
-      halVal += my_to_string(hallValue);
-      halVal += "}\r\n";
-      pTxCharacteristic->setValue(halVal);
-      pTxCharacteristic->notify();
+    static long previousMillis = 0;
+    auto nowMS = millis();
+    if(nowMS - previousMillis < constWriteBLEIntervalMS) {
+      return;
     }
-    */
-      static long previousMillis = 0;
-      auto nowMS = millis();
-      if(nowMS - previousMillis < constWriteBLEIntervalMS) {
-        return;
-      }
-      previousMillis = nowMS;
-
-    {
-      std::string imuVal = "{ax:";
-      imuVal += my_to_string(accXTask0);
-      imuVal += "}\r\n";
-      pTxCharacteristic->setValue(imuVal);
-      pTxCharacteristic->notify();
-    }
+    previousMillis = nowMS;
+    reportIMU();
   }
   if (!deviceConnected && oldDeviceConnected) {
     delay(500); // give the bluetooth stack the chance to get things ready
@@ -119,5 +184,15 @@ void runBleTransimit(void)
   if (deviceConnected && !oldDeviceConnected) {
   // do stuff here on connecting
       oldDeviceConnected = deviceConnected;
+  }
+}
+
+void BLETask( void * parameter) {
+  int core = xPortGetCoreID();
+  DUMP_I(core);
+  setupBLE();
+  for(;;) {//
+    runBleTransimit();
+    delay(1);
   }
 }
