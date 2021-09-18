@@ -2,7 +2,6 @@
 #include <thread>
 #include <ArduinoJson.h>
 #include "debug.h"
-void MotorTask( void * parameter);
 void SteeringMotorTask( void * parameter);
 void DriveMotorTask( void * parameter);
 void BLETask( void * parameter);
@@ -23,6 +22,5 @@ void setup() {
   xTaskCreatePinnedToCore(DriveMotorTask, "DriveMotorTask", 10000, nullptr, 1, nullptr,  0); 
 }
 
-void runBleTransimit(void);
 void loop() {
 }
