@@ -1,6 +1,5 @@
 #include <Arduino.h>
 #include <thread>
-#include <ArduinoJson.h>
 #include "debug.h"
 void SteeringMotorTask( void * parameter);
 void DriveMotorTask( void * parameter);

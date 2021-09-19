@@ -3,6 +3,9 @@
 #include <BLEUtils.h>
 #include <BLEServer.h>
 #include <BLE2902.h>
+
+#include <ArduinoJson.h>
+
 #include <sstream>
 #include "debug.h"
 
@@ -14,12 +17,12 @@ bool oldDeviceConnected = false;
 class MyServerCallbacks: public BLEServerCallbacks {
     void onConnect(BLEServer* pServer) {
       deviceConnected = true;
-      DUMP_I(deviceConnected);
+      LOG_I(deviceConnected);
     };
 
     void onDisconnect(BLEServer* pServer) {
       deviceConnected = false;
-      DUMP_I(deviceConnected);
+      LOG_I(deviceConnected);
     }
 };
 
@@ -31,7 +34,7 @@ class MyCallbacks: public BLECharacteristicCallbacks {
 
   void onWrite(BLECharacteristic *pCharacteristic) {
     std::string value = pCharacteristic->getValue();
-    DUMP_S(value);
+    LOG_S(value);
   }
 };
 
@@ -70,17 +73,6 @@ std::string my_to_string_f(float f) {
   return ss.str();
 }
 
-/*
-extern float accXTask0;
-extern float accYTask0;
-extern float accZTask0;
-extern float gyroXTask0;
-extern float gyroYTask0;
-extern float gyroZTask0;
-extern float magnetXTask0;
-extern float magnetYTask0;
-extern float magnetZTask0;
-*/
 
 extern float accX;
 extern float accY;
@@ -94,68 +86,69 @@ extern float magnetZ;
 
 static const long constWriteBLEIntervalMS = 100;
 
+
 void reportIMU(void)
 {
 /*  
   {
-    std::string imuVal = "{ax:";
+    std::string imuVal = "{\"ax\":";
     imuVal += my_to_string_f(accX);
     imuVal += "}\r\n";
     pTxCharacteristic->setValue(imuVal);
     pTxCharacteristic->notify();
   }
   {
-    std::string imuVal = "{ay:";
+    std::string imuVal = "{\"ay\":";
     imuVal += my_to_string_f(accY);
     imuVal += "}\r\n";
     pTxCharacteristic->setValue(imuVal);
     pTxCharacteristic->notify();
   }
   {
-    std::string imuVal = "{az:";
+    std::string imuVal = "{\"az\":";
     imuVal += my_to_string_f(accZ);
     imuVal += "}\r\n";
     pTxCharacteristic->setValue(imuVal);
     pTxCharacteristic->notify();
   }
   {
-    std::string imuVal = "{gx:";
+    std::string imuVal = "{\"gx\":";
     imuVal += my_to_string_f(gyroX);
     imuVal += "}\r\n";
     pTxCharacteristic->setValue(imuVal);
     pTxCharacteristic->notify();
   }
   {
-    std::string imuVal = "{gy:";
+    std::string imuVal = "{\"gy\":";
     imuVal += my_to_string_f(gyroY);
     imuVal += "}\r\n";
     pTxCharacteristic->setValue(imuVal);
     pTxCharacteristic->notify();
   }
   {
-    std::string imuVal = "{gz:";
+    std::string imuVal = "{\"gz\":";
     imuVal += my_to_string_f(gyroZ);
-    imuVal += "}\r\n";
-    pTxCharacteristic->setValue(imuVal);
-    pTxCharacteristic->notify();
-  }
-  {
-    std::string imuVal = "{mx:";
-    imuVal += my_to_string_f(magnetX);
     imuVal += "}\r\n";
     pTxCharacteristic->setValue(imuVal);
     pTxCharacteristic->notify();
   }
 */
   {
-    std::string imuVal = "{my:";
+    std::string imuVal = "{\"mx\":";
+    imuVal += my_to_string_f(magnetX);
+    imuVal += "}\r\n";
+    pTxCharacteristic->setValue(imuVal);
+    pTxCharacteristic->notify();
+  }
+  {
+    std::string imuVal = "{\"my\":";
     imuVal += my_to_string_f(magnetY);
     imuVal += "}\r\n";
     pTxCharacteristic->setValue(imuVal);
     pTxCharacteristic->notify();
   }
   {
-    std::string imuVal = "{mz:";
+    std::string imuVal = "{\"mz\":";
     imuVal += my_to_string_f(magnetZ);
     imuVal += "}\r\n";
     pTxCharacteristic->setValue(imuVal);
@@ -189,7 +182,7 @@ void runBleTransimit(void)
 
 void BLETask( void * parameter) {
   int core = xPortGetCoreID();
-  DUMP_I(core);
+  LOG_I(core);
   setupBLE();
   for(;;) {//
     runBleTransimit();

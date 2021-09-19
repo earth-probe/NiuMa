@@ -3,12 +3,18 @@
 void setupIMU(void);
 void readIMU(void);
 
+void setupSteeringMotor(void);
+void execSteeringMotor(void);
+
+
 void SteeringMotorTask( void * parameter) {
   int core = xPortGetCoreID();
-  DUMP_I(core);
+  LOG_I(core);
+  setupSteeringMotor();
   setupIMU();
   for(;;) {//
     readIMU();
+    execSteeringMotor();
     delay(1);
   }
 }
@@ -36,12 +42,6 @@ volatile float gyroZ;
 volatile float magnetX;
 volatile float magnetY;
 volatile float magnetZ;
-
-/*
-extern QueueHandle_t axQueue;
-extern QueueHandle_t ayQueue;
-extern QueueHandle_t azQueue;
-*/
 
 
 void readIMU(void) {
@@ -98,4 +98,35 @@ void readIMU(void) {
   DUMP_F(magnetZ);
 #endif
 
+}
+
+
+static const uint8_t iConstPinExtend = GPIO_NUM_17; 
+static const uint8_t iConstPinReduce = GPIO_NUM_18;
+static const uint8_t iConstPinSteeringLevelOE = GPIO_NUM_19;
+
+void setupSteeringMotor(void) {
+  pinMode(iConstPinExtend, OUTPUT);
+  pinMode(iConstPinReduce, OUTPUT);
+
+  pinMode(iConstPinSteeringLevelOE, OUTPUT);
+  digitalWrite(iConstPinSteeringLevelOE,1);
+}
+
+volatile uint8_t gDriveMotorExtend = 1;
+volatile uint8_t gDriveMotorReduce = 0;
+
+static const long constSteeringMotorIntervalMS = 200; 
+
+void execSteeringMotor(void) {
+  static long previousMillis = 0;
+  auto nowMS = millis();
+  if(nowMS - previousMillis < constSteeringMotorIntervalMS) {
+    return;
+  }
+  previousMillis = nowMS;
+  DUMP_I(gDriveMotorExtend);  
+  DUMP_I(gDriveMotorReduce);  
+  digitalWrite(iConstPinExtend,gDriveMotorExtend);
+  digitalWrite(iConstPinReduce,gDriveMotorReduce);
 }

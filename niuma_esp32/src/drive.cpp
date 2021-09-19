@@ -5,7 +5,7 @@ void setupDriveMotor(void);
 void execDriveMotor(void);
 void DriveMotorTask( void * parameter) {
   int core = xPortGetCoreID();
-  DUMP_I(core);
+  LOG_I(core);
   setupDriveMotor();
   for(;;) {//
     execDriveMotor();
