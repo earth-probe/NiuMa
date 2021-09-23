@@ -1,6 +1,6 @@
 #include <Arduino.h>
 #include <thread>
-#include "debug.h"
+#include "debug.hpp"
 void SteeringMotorTask( void * parameter);
 void DriveMotorTask( void * parameter);
 void BLETask( void * parameter);

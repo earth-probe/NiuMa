@@ -7,7 +7,7 @@
 #include <ArduinoJson.h>
 
 #include <sstream>
-#include "debug.h"
+#include "debug.hpp"
 
 BLEServer *pServer = NULL;
 BLECharacteristic * pTxCharacteristic;

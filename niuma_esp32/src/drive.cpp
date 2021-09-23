@@ -1,5 +1,5 @@
 #include <Arduino.h>
-#include "debug.h"
+#include "debug.hpp"
 
 void setupDriveMotor(void);
 void execDriveMotor(void);
