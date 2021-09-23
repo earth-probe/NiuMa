@@ -9,7 +9,7 @@ void DriveMotorTask( void * parameter) {
   setupDriveMotor();
   for(;;) {//
     execDriveMotor();
-    delay(100);
+    delay(1);
   }
 }
 
@@ -30,15 +30,39 @@ void setupDriveMotor(void) {
   digitalWrite(iConstPinLevelOE,1);
 }
 
-volatile uint8_t gDriveMotorSpeed = 16;
-volatile uint8_t gDriveMotorDir = 1;
-volatile uint8_t gDriveMotorBrake = 0;
 
+volatile uint8_t gDriveMotorSpeed = 0;
+volatile uint8_t gDriveMotorDir = 1;
+volatile uint8_t gDriveMotorBrake = 1;
+
+static auto gMilliSecAtLastCommand = millis();
+void refreshExternDrivecommand(float speed,bool dir,bool brake) {
+  LOG_F(speed);
+  LOG_I(dir);
+  LOG_I(brake);
+  gMilliSecAtLastCommand = millis();
+  if(brake) {
+    gDriveMotorSpeed = 0;
+    gDriveMotorBrake = 1;
+  } else {
+    gDriveMotorSpeed = (uint8_t)speed;
+    gDriveMotorBrake = 0;
+  }
+  if(dir) {
+    gDriveMotorDir = 1;
+  } else {
+    gDriveMotorDir = 0;
+  }
+}
+
+static const u_long iConstOneCommandInterval = 1000;
 void execDriveMotor(void) {
-  DUMP_I(gDriveMotorSpeed);
-  //dacWrite(iConstPinSpeed,gDriveMotorSpeed);
+  auto now = millis();
+  if(now - gMilliSecAtLastCommand > iConstOneCommandInterval) {
+    gDriveMotorSpeed = 0;
+    gDriveMotorBrake = 1;
+  }
   ledcWrite(iConstPinSpeedPWMChannel,gDriveMotorSpeed);
-  
   digitalWrite(iConstPinDIR,gDriveMotorDir);
   digitalWrite(iConstPinBrake,gDriveMotorBrake);
 }

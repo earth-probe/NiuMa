@@ -113,18 +113,40 @@ void setupSteeringMotor(void) {
   digitalWrite(iConstPinSteeringLevelOE,1);
 }
 
+static auto gMilliSecAtLastCommand = millis();
 volatile uint8_t gDriveMotorExtend = 1;
-volatile uint8_t gDriveMotorReduce = 0;
+volatile uint8_t gDriveMotorReduce = 1;
+void refreshExternSteeringcommand(float angle,bool brake) {
+  if(brake) {
+    gDriveMotorExtend = 1;
+    gDriveMotorReduce = 1;
+  } else {
+    if(angle > 0) {
+      gDriveMotorExtend = 0;
+      gDriveMotorReduce = 1;
+    } else {
+      gDriveMotorExtend = 1;
+      gDriveMotorReduce = 0;
+    }
+  }
+  gMilliSecAtLastCommand = millis();
+  LOG_I(gDriveMotorExtend);
+  LOG_I(gDriveMotorReduce);
+}
 
 static const long constSteeringMotorIntervalMS = 200; 
 
+
 void execSteeringMotor(void) {
+  /*
   static long previousMillis = 0;
   auto nowMS = millis();
   if(nowMS - previousMillis < constSteeringMotorIntervalMS) {
     return;
   }
   previousMillis = nowMS;
+  */
+
   DUMP_I(gDriveMotorExtend);  
   DUMP_I(gDriveMotorReduce);  
   digitalWrite(iConstPinExtend,gDriveMotorExtend);

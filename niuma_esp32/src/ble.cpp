@@ -26,6 +26,45 @@ class MyServerCallbacks: public BLEServerCallbacks {
     }
 };
 
+void refreshExternDrivecommand(float speed,bool dir,bool brake);
+void refreshExternSteeringcommand(float angle,bool brake);
+
+void onExternalCommand(StaticJsonDocument<256> &doc) {
+  if(doc.containsKey("forward")) {
+    auto forward = doc["forward"];
+    if(forward.containsKey("speed")) {
+      float speed = forward["speed"].as<float>();
+      LOG_F(speed);
+      refreshExternDrivecommand(speed,true,false);
+    }
+  }
+  if(doc.containsKey("backward")) {
+    auto backward = doc["backward"];
+    if(backward.containsKey("speed")) {
+      float speed = backward["speed"].as<float>();
+      LOG_F(speed);
+      refreshExternDrivecommand(speed,false,false);
+    }
+  }
+  if(doc.containsKey("turn")) {
+    auto turn = doc["turn"];
+    if(turn.containsKey("angle")) {
+      float angle = turn["angle"].as<float>();
+      LOG_F(angle);
+      refreshExternSteeringcommand(angle,false);
+    }
+  }
+  if(doc.containsKey("stop")) {
+    auto stop = doc["stop"];
+    if(stop.containsKey("all")) {
+      bool all = stop["all"].as<bool>();
+      LOG_I(all);
+      refreshExternDrivecommand(0.0,false,true);
+      refreshExternSteeringcommand(0.0,true);
+    }
+  }
+}
+
 class MyCallbacks: public BLECharacteristicCallbacks {
   void onRead(BLECharacteristic *pCharacteristic) {
     //pCharacteristic->setValue("Hello World!");
@@ -35,6 +74,12 @@ class MyCallbacks: public BLECharacteristicCallbacks {
   void onWrite(BLECharacteristic *pCharacteristic) {
     std::string value = pCharacteristic->getValue();
     LOG_S(value);
+    StaticJsonDocument<256> doc;
+    DeserializationError error = deserializeJson(doc, value);
+    LOG_S(error);
+    if(error == DeserializationError::Ok) {
+      onExternalCommand(doc);
+    }
   }
 };
 
