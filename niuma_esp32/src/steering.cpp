@@ -7,11 +7,14 @@ void setupSteeringMotor(void);
 void execSteeringMotor(void);
 
 
+void read_angle_table(void);
+
 void SteeringMotorTask( void * parameter) {
   int core = xPortGetCoreID();
   LOG_I(core);
   setupSteeringMotor();
   setupIMU();
+  read_angle_table();
   for(;;) {//
     readIMU();
     execSteeringMotor();
@@ -151,4 +154,11 @@ void execSteeringMotor(void) {
   DUMP_I(gDriveMotorReduce);  
   digitalWrite(iConstPinExtend,gDriveMotorExtend);
   digitalWrite(iConstPinReduce,gDriveMotorReduce);
+}
+
+#include <EEPROM.h>
+
+
+void read_angle_table(void) {
+
 }
