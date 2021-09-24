@@ -1,11 +1,8 @@
 #include <Arduino.h>
 #include "debug.hpp"
-void setupIMU(void);
-void readIMU(void);
-
 void setupSteeringMotor(void);
 void execSteeringMotor(void);
-
+void execSteeringCalibration(void);
 
 void read_angle_table(void);
 
@@ -13,95 +10,25 @@ void SteeringMotorTask( void * parameter) {
   int core = xPortGetCoreID();
   LOG_I(core);
   setupSteeringMotor();
-  setupIMU();
   read_angle_table();
   for(;;) {//
-    readIMU();
+    execSteeringCalibration();
     execSteeringMotor();
     delay(1);
   }
 }
 
-#include <Wire.h>
-#include <SPI.h>
-
-#include <SparkFunLSM9DS1.h>
-LSM9DS1 imu;
-#define LSM9DS1_M 0x1C
-#define LSM9DS1_AG 0x6A 
-void setupIMU(void) {
-  Wire.begin();
-  auto isGood = imu.begin(LSM9DS1_AG, LSM9DS1_M, Wire);
-  DUMP_I(isGood);  
-}
-
-static const long constReadImuIntervalMS = 1000;
-volatile float accX;
-volatile float accY;
-volatile float accZ;
-volatile float gyroX;
-volatile float gyroY;
-volatile float gyroZ;
-volatile float magnetX;
-volatile float magnetY;
-volatile float magnetZ;
+extern volatile float accX;
+extern volatile float accY;
+extern volatile float accZ;
+extern volatile float gyroX;
+extern volatile float gyroY;
+extern volatile float gyroZ;
+extern volatile float magnetX;
+extern volatile float magnetY;
+extern volatile float magnetZ;
 
 
-void readIMU(void) {
-  static long previousMillis = 0;
-  auto nowMS = millis();
-  if(nowMS - previousMillis < constReadImuIntervalMS) {
-    return;
-  }
-  previousMillis = nowMS;
-  if ( imu.gyroAvailable() )
-  {
-    imu.readGyro();
-  }
-  if ( imu.accelAvailable() )
-  {
-    imu.readAccel();
-  }
-  if ( imu.magAvailable() )
-  {
-    imu.readMag();
-  }
-  if ( imu.tempAvailable() )
-  {
-    imu.readTemp();
-  }
-
-  accX = imu.calcAccel(imu.ax);
-//  auto axStatus = xQueueSend(axQueue, &accX, 0);
-//  DUMP_I(axStatus)
-  accY = imu.calcAccel(imu.ay);
-//  auto ayStatus = xQueueSend(ayQueue, &accY, 0);  
-//  DUMP_I(ayStatus)
-  accZ = imu.calcAccel(imu.az);
-//  auto azStatus = xQueueSend(azQueue, &accZ, 0);
-//  DUMP_I(azStatus)
-
-  magnetX = imu.calcMag(imu.mx);
-  magnetY = imu.calcMag(imu.my);
-  magnetZ = imu.calcMag(imu.mz);
-  gyroX = imu.calcGyro(imu.gx);
-  gyroY = imu.calcGyro(imu.gy);
-  gyroZ = imu.calcGyro(imu.gz);
-#if 1 
-  DUMP_F(accX);
-  DUMP_F(accY);
-  DUMP_F(accZ);
-
-  DUMP_F(gyroX);
-  DUMP_F(gyroY);
-  DUMP_F(gyroZ);
-
-  DUMP_F(magnetX);
-  DUMP_F(magnetY);
-  DUMP_F(magnetZ);
-#endif
-
-}
 
 
 static const uint8_t iConstPinExtend = GPIO_NUM_17; 
@@ -119,7 +46,7 @@ void setupSteeringMotor(void) {
 static auto gMilliSecAtLastCommand = millis();
 volatile uint8_t gDriveMotorExtend = 1;
 volatile uint8_t gDriveMotorReduce = 1;
-void refreshExternSteeringcommand(float angle,bool brake) {
+void refreshExternSteeringCommand(float angle,bool brake) {
   if(brake) {
     gDriveMotorExtend = 1;
     gDriveMotorReduce = 1;
@@ -138,27 +65,89 @@ void refreshExternSteeringcommand(float angle,bool brake) {
 }
 
 static const long constSteeringMotorIntervalMS = 200; 
+static bool gIsRunCalibration = false;
 
+
+uint8_t gDriveMotorExtend4Calibration = 1;
+uint8_t gDriveMotorReduce4Calibration = 1;
 
 void execSteeringMotor(void) {
-  /*
-  static long previousMillis = 0;
-  auto nowMS = millis();
-  if(nowMS - previousMillis < constSteeringMotorIntervalMS) {
-    return;
-  }
-  previousMillis = nowMS;
-  */
-
   DUMP_I(gDriveMotorExtend);  
-  DUMP_I(gDriveMotorReduce);  
-  digitalWrite(iConstPinExtend,gDriveMotorExtend);
-  digitalWrite(iConstPinReduce,gDriveMotorReduce);
+  DUMP_I(gDriveMotorReduce);
+  if(gIsRunCalibration) {
+    digitalWrite(iConstPinExtend,gDriveMotorExtend4Calibration);
+    digitalWrite(iConstPinReduce,gDriveMotorReduce4Calibration);
+  } else {
+    digitalWrite(iConstPinExtend,gDriveMotorExtend);
+    digitalWrite(iConstPinReduce,gDriveMotorReduce);
+  }
 }
 
 #include <EEPROM.h>
 
 
 void read_angle_table(void) {
+}
 
+#include <tuple>
+#include <vector>
+std::vector<std::tuple<float,float,float>> gStoreMagnet; 
+
+static auto gMilliSecStartCalibration = millis();
+void refreshExternSteeringCalibration(bool run) {
+  gMilliSecStartCalibration = millis();
+  gDriveMotorExtend4Calibration = 0;
+  gDriveMotorReduce4Calibration = 1;
+  gStoreMagnet.clear();
+}
+
+static const long constSteeringCalibrationStage1 = 500;
+static const long constSteeringCalibrationStage2 = constSteeringCalibrationStage1 + 1000;
+static const long constSteeringCalibrationFinnish = constSteeringCalibrationStage2 + 1000;
+
+
+static const float fConstMagnetMin = 0.001;
+
+void execSteeringCalibration(void) {
+  auto const escaped_ms = millis() - gMilliSecStartCalibration;
+  if(escaped_ms > constSteeringCalibrationFinnish) {
+    gIsRunCalibration = false;
+    return ;
+  }
+  gIsRunCalibration = true;
+  bool storeManget = false;
+  if( escaped_ms < constSteeringCalibrationStage1) {
+    gDriveMotorExtend4Calibration = 0;
+    gDriveMotorReduce4Calibration = 1;
+  } else if(escaped_ms < constSteeringCalibrationStage2) {
+    gDriveMotorExtend4Calibration = 1;
+    gDriveMotorReduce4Calibration = 0;
+    storeManget = true;
+  } else if(escaped_ms < constSteeringCalibrationFinnish) {
+    gDriveMotorExtend4Calibration = 0;
+    gDriveMotorReduce4Calibration = 1;
+    storeManget = true;
+  } else {
+
+  }
+  if(storeManget) {
+    if(gStoreMagnet.size() == 0) {
+      auto magnet = std::make_tuple(magnetX,magnetY,magnetZ);
+      gStoreMagnet.push_back(magnet);
+    } else {
+      static auto prevmagnetX = magnetX;
+      static auto prevmagnetY = magnetY;
+      static auto prevmagnetZ = magnetZ;
+      if( std::abs(prevmagnetX - magnetX) > fConstMagnetMin ||
+        std::abs(prevmagnetY - magnetY) > fConstMagnetMin ||
+        std::abs(prevmagnetZ - magnetZ) > fConstMagnetMin 
+      ) {
+        prevmagnetX = magnetX;
+        prevmagnetY = magnetY;
+        prevmagnetZ = magnetZ;
+        auto magnet = std::make_tuple(magnetX,magnetY,magnetZ);
+        gStoreMagnet.push_back(magnet);
+      }
+    }
+  }
 }

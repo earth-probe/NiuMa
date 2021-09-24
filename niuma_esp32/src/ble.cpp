@@ -27,7 +27,8 @@ class MyServerCallbacks: public BLEServerCallbacks {
 };
 
 void refreshExternDrivecommand(float speed,bool dir,bool brake);
-void refreshExternSteeringcommand(float angle,bool brake);
+void refreshExternSteeringCommand(float angle,bool brake);
+void refreshExternSteeringCalibration(bool run);
 
 void onExternalCommand(StaticJsonDocument<256> &doc) {
   if(doc.containsKey("forward")) {
@@ -51,7 +52,15 @@ void onExternalCommand(StaticJsonDocument<256> &doc) {
     if(turn.containsKey("angle")) {
       float angle = turn["angle"].as<float>();
       LOG_F(angle);
-      refreshExternSteeringcommand(angle,false);
+      refreshExternSteeringCommand(angle,false);
+    }
+  }
+  if(doc.containsKey("steering")) {
+    auto steering = doc["steering"];
+    if(steering.containsKey("calibration")) {
+      bool calibration = steering["calibration"].as<bool>();
+      LOG_I(calibration);
+      refreshExternSteeringCalibration(calibration);
     }
   }
   if(doc.containsKey("stop")) {
@@ -60,7 +69,7 @@ void onExternalCommand(StaticJsonDocument<256> &doc) {
       bool all = stop["all"].as<bool>();
       LOG_I(all);
       refreshExternDrivecommand(0.0,false,true);
-      refreshExternSteeringcommand(0.0,true);
+      refreshExternSteeringCommand(0.0,true);
     }
   }
 }
@@ -119,17 +128,17 @@ std::string my_to_string_f(float f) {
 }
 
 
-extern float accX;
-extern float accY;
-extern float accZ;
-extern float gyroX;
-extern float gyroY;
-extern float gyroZ;
-extern float magnetX;
-extern float magnetY;
-extern float magnetZ;
+extern volatile float accX;
+extern volatile float accY;
+extern volatile float accZ;
+extern volatile float gyroX;
+extern volatile float gyroY;
+extern volatile float gyroZ;
+extern volatile float magnetX;
+extern volatile float magnetY;
+extern volatile float magnetZ;
 
-static const long constWriteBLEIntervalMS = 100;
+static const long constWriteBLEIntervalMS = 50;
 
 
 void reportIMU(void)
