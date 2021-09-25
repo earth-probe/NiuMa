@@ -209,6 +209,36 @@ void reportIMU(void)
     pTxCharacteristic->notify();
   }
 }
+extern volatile bool gIsRunCalibration;
+
+void reportCalibration(void) {
+  if(gIsRunCalibration == false) {
+    return;
+  }
+/*  
+  {
+    std::string imuVal = "{\"c_mx\":";
+    imuVal += my_to_string_f(magnetX);
+    imuVal += "}\r\n";
+    pTxCharacteristic->setValue(imuVal);
+    pTxCharacteristic->notify();
+  }
+  {
+    std::string imuVal = "{\"c_my\":";
+    imuVal += my_to_string_f(magnetY);
+    imuVal += "}\r\n";
+    pTxCharacteristic->setValue(imuVal);
+    pTxCharacteristic->notify();
+  }
+  {
+    std::string imuVal = "{\"c_mz\":";
+    imuVal += my_to_string_f(magnetZ);
+    imuVal += "}\r\n";
+    pTxCharacteristic->setValue(imuVal);
+    pTxCharacteristic->notify();
+  }
+*/
+}
 
 void runBleTransimit(void)
 {
@@ -220,6 +250,7 @@ void runBleTransimit(void)
     }
     previousMillis = nowMS;
     reportIMU();
+    reportCalibration();
   }
   if (!deviceConnected && oldDeviceConnected) {
     delay(500); // give the bluetooth stack the chance to get things ready
