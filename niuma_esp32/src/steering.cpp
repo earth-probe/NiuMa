@@ -3,6 +3,7 @@
 void setupSteeringMotor(void);
 void execSteeringMotor(void);
 void execSteeringCalibration(void);
+void calcCalibration(void);
 
 void read_angle_table(void);
 
@@ -13,6 +14,7 @@ void SteeringMotorTask( void * parameter) {
   read_angle_table();
   for(;;) {//
     execSteeringCalibration();
+    calcCalibration();
     execSteeringMotor();
     delay(1);
   }
@@ -94,17 +96,20 @@ void read_angle_table(void) {
 #include <vector>
 std::vector<std::tuple<float,float,float>> gStoreMagnet; 
 
+static volatile bool gIsCalcCalibration = false;
+
 static auto gMilliSecStartCalibration = millis();
 void refreshExternSteeringCalibration(bool run) {
   gMilliSecStartCalibration = millis();
   gDriveMotorExtend4Calibration = 0;
   gDriveMotorReduce4Calibration = 1;
   gStoreMagnet.clear();
+  gIsCalcCalibration = true;
 }
 
 static const long constSteeringCalibrationStage1 = 1000;
-static const long constSteeringCalibrationStage2 = constSteeringCalibrationStage1 + 2000;
-static const long constSteeringCalibrationFinnish = constSteeringCalibrationStage2 + 2000;
+static const long constSteeringCalibrationFinnish = constSteeringCalibrationStage1 + 2000;
+static const long constSteeringCalibrationCalc = constSteeringCalibrationFinnish + 100;
 
 
 static const float fConstMagnetMin = 0.001;
@@ -120,13 +125,9 @@ void execSteeringCalibration(void) {
   if( escaped_ms < constSteeringCalibrationStage1) {
     gDriveMotorExtend4Calibration = 0;
     gDriveMotorReduce4Calibration = 1;
-  } else if(escaped_ms < constSteeringCalibrationStage2) {
+  } else if(escaped_ms < constSteeringCalibrationFinnish) {
     gDriveMotorExtend4Calibration = 1;
     gDriveMotorReduce4Calibration = 0;
-    storeManget = true;
-  } else if(escaped_ms < constSteeringCalibrationFinnish) {
-    gDriveMotorExtend4Calibration = 0;
-    gDriveMotorReduce4Calibration = 1;
     storeManget = true;
   } else {
 
@@ -146,12 +147,142 @@ void execSteeringCalibration(void) {
         prevmagnetX = magnetX;
         prevmagnetY = magnetY;
         prevmagnetZ = magnetZ;
-        LOG_F(magnetX);
-        LOG_F(magnetY);
-        LOG_F(magnetZ);
+        //LOG_F(magnetX);
+        //LOG_F(magnetY);
+        //LOG_F(magnetZ);
         auto magnet = std::make_tuple(magnetX,magnetY,magnetZ);
         gStoreMagnet.push_back(magnet);
       }
     }
   }
+}
+
+void calcCalibrationReal(void);
+void calcCalibration(void) {
+  if(gIsCalcCalibration == false) {
+    return ;
+  }
+  auto const escaped_ms = millis() - gMilliSecStartCalibration;
+  if(escaped_ms > constSteeringCalibrationFinnish && 
+    escaped_ms < constSteeringCalibrationCalc
+    )
+  {
+    calcCalibrationReal();
+    gIsCalcCalibration = false;
+  }
+}
+void calcCalibrationReal(void) {
+  if(gStoreMagnet.size() == 0) {
+    return;
+  }
+  auto first = gStoreMagnet.begin();
+  float maxX = std::get<0>(*first);
+  float maxY = std::get<1>(*first);
+  float maxZ = std::get<2>(*first);
+  int xIndexMax = 0;
+  int yIndexMax = 0;
+  int zIndexMax = 0;
+  int indexOfAll = 0;
+  for(auto magenetIt :gStoreMagnet) {
+    auto x = std::get<0>(magenetIt);
+    if(x > maxX) {
+      maxX = x;
+      xIndexMax = indexOfAll;
+    }
+    auto y = std::get<1>(magenetIt);
+    if(y > maxY) {
+      maxY = y;
+      yIndexMax = indexOfAll;
+    }
+    auto z = std::get<2>(magenetIt);
+    if(z > maxZ) {
+      maxZ = z;
+      zIndexMax = indexOfAll;
+    }
+    indexOfAll ++;
+  }
+  LOG_F(maxX);
+  LOG_F(maxY);
+  LOG_F(maxZ);
+  LOG_I(xIndexMax);
+  LOG_I(yIndexMax);
+  LOG_I(zIndexMax);
+
+  float minXLeft = std::get<0>(*first);
+  float minYLeft = std::get<1>(*first);
+  float minZLeft = std::get<2>(*first);
+  auto last = gStoreMagnet.rbegin();
+  float minXRight = std::get<0>(*last);
+  float minYRight = std::get<1>(*last);
+  float minZRight = std::get<2>(*last);
+
+  int xIndexMinLeft = 0;
+  int yIndexMinLeft = 0;
+  int zIndexMinLeft = 0;
+
+  int xIndexMinRight = gStoreMagnet.size()-1;
+  int yIndexMinRight = gStoreMagnet.size()-1;
+  int zIndexMinRight = gStoreMagnet.size()-1;
+
+  int indexMin = 0;
+  for(auto magenetIt :gStoreMagnet) {
+    auto x = std::get<0>(magenetIt);
+   if(indexMin <= xIndexMax) {
+      if(x < minXLeft) {
+        minXLeft = x;
+        xIndexMinLeft = indexMin;
+      }
+
+    } else {
+      if(x < minXRight) {
+        minXRight = x;
+        xIndexMinRight = indexMin;
+      }
+    }
+    auto y = std::get<1>(magenetIt);
+    if(indexMin <= yIndexMax) {
+      if(y < minYLeft) {
+        minYLeft = y;
+        yIndexMinLeft = indexMin;
+      }
+
+    } else {
+      if(y < minYRight) {
+        minYRight = y;
+        yIndexMinRight = indexMin;
+      }
+    }
+    auto z = std::get<2>(magenetIt);
+    if(indexMin <= zIndexMax) {
+      if(z < minZLeft) {
+        minZLeft = z;
+        zIndexMinLeft = indexMin;
+      }
+
+    } else {
+      if(z < minZRight) {
+        minZRight = z;
+        zIndexMinRight = indexMin;
+      }
+    }
+    indexMin ++;
+  }
+
+  LOG_F(minXLeft);
+  LOG_F(minYLeft);
+  LOG_F(minZLeft);
+
+  LOG_I(xIndexMinLeft);
+  LOG_I(yIndexMinLeft);
+  LOG_I(zIndexMinLeft);
+
+  LOG_F(minXRight);
+  LOG_F(minYRight);
+  LOG_F(minZRight);
+
+  LOG_I(xIndexMinRight);
+  LOG_I(yIndexMinRight);
+  LOG_I(zIndexMinRight);
+
+
 }
