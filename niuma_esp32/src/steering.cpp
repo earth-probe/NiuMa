@@ -4,7 +4,7 @@ void setupSteeringMotor(void);
 void execSteeringMotor(void);
 void execSteeringCalibration(void);
 void calcCalibration(void);
-void calcSteeringTarget(void);
+void makeSteeringExec(void);
 
 
 void read_angle_table(void);
@@ -15,10 +15,13 @@ void SteeringMotorTask( void * parameter) {
   setupSteeringMotor();
   read_angle_table();
   for(;;) {//
+    
     execSteeringCalibration();
     calcCalibration();
-    //calcSteeringTarget();
+
+    makeSteeringExec();
     execSteeringMotor();
+    
     delay(1);
   }
 }
@@ -64,6 +67,8 @@ volatile static float gRightMaxTurn = 0.0;
 volatile static float gLeftMaxTurnX = 0.0;
 volatile static float gRightMaxTurnX = 0.0;
 volatile static float gWidthTurnX = std::abs(gRightMaxTurnX - gLeftMaxTurnX);
+
+void calcSteeringTarget(void);
 
 void refreshExternSteeringCommand(float angle,bool brake) {
   if(brake) {
@@ -164,6 +169,20 @@ void calcSteeringTargetWithX(void) {
   fTargetMagnetX = gLeftMaxTurnX + (targetRange * gWidthTurnX)/iConstAngleWidth;
 }
 
+static const float fConstDiffOfMangetXSteering = 0.01;
+
+void makeSteeringExec(void) {
+  const float diffMagnetX =  fTargetMagnetX - magnetX;
+  if(std::abs(diffMagnetX) > fConstDiffOfMangetXSteering ) {
+    if(diffMagnetX > 0.0) {
+      gDriveMotorExtend = 0;
+      gDriveMotorReduce = 1;
+    } else {
+      gDriveMotorExtend = 1;
+      gDriveMotorReduce = 0;
+    }
+  }
+}
 
 
 #include <tuple>
