@@ -65,7 +65,8 @@ void refreshExternSteeringCommand(float angle,bool brake) {
 }
 
 static const long constSteeringMotorIntervalMS = 200; 
-static bool gIsRunCalibration = false;
+
+volatile bool gIsRunCalibration = false;
 
 
 uint8_t gDriveMotorExtend4Calibration = 1;
