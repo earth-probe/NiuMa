@@ -4,6 +4,8 @@ void setupSteeringMotor(void);
 void execSteeringMotor(void);
 void execSteeringCalibration(void);
 void calcCalibration(void);
+void calcSteeringTarget(void);
+
 
 void read_angle_table(void);
 
@@ -15,6 +17,7 @@ void SteeringMotorTask( void * parameter) {
   for(;;) {//
     execSteeringCalibration();
     calcCalibration();
+    calcSteeringTarget();
     execSteeringMotor();
     delay(1);
   }
@@ -48,22 +51,30 @@ void setupSteeringMotor(void) {
 static auto gMilliSecAtLastCommand = millis();
 volatile uint8_t gDriveMotorExtend = 1;
 volatile uint8_t gDriveMotorReduce = 1;
+volatile static float fTargetTurnAngleLeft = -1.0;
+volatile static float fTargetTurnAngleRight = -1.0;
 void refreshExternSteeringCommand(float angle,bool brake) {
   if(brake) {
     gDriveMotorExtend = 1;
     gDriveMotorReduce = 1;
   } else {
     if(angle > 0) {
-      gDriveMotorExtend = 0;
-      gDriveMotorReduce = 1;
+      //gDriveMotorExtend = 0;
+      //gDriveMotorReduce = 1;
+      fTargetTurnAngleLeft = -1.0;
+      fTargetTurnAngleRight = angle;
     } else {
-      gDriveMotorExtend = 1;
-      gDriveMotorReduce = 0;
+      //gDriveMotorExtend = 1;
+      //gDriveMotorReduce = 0;
+      fTargetTurnAngleLeft = angle;
+      fTargetTurnAngleRight = -1.0;
     }
   }
   gMilliSecAtLastCommand = millis();
   LOG_I(gDriveMotorExtend);
   LOG_I(gDriveMotorReduce);
+  LOG_F(fTargetTurnAngleLeft);
+  LOG_F(fTargetTurnAngleRight);
 }
 
 static const long constSteeringMotorIntervalMS = 200; 
@@ -89,8 +100,39 @@ void execSteeringMotor(void) {
 #include <EEPROM.h>
 
 
+static const int iConstAddressOfLeftMaxTurn = 0;
+static const int iConstAddressOfCenterTurn = iConstAddressOfLeftMaxTurn + sizeof(float);
+static const int iConstAddressOfRightMaxTurn = iConstAddressOfCenterTurn + sizeof(float);
+
+static float gLeftMaxTurn = 0.0;
+static float gCenterTurn = 0.0;
+static float gRightMaxTurn = 0.0;
+
 void read_angle_table(void) {
+  float fLeftMaxTurn = 0.0;
+  EEPROM.get( iConstAddressOfLeftMaxTurn, fLeftMaxTurn);
+  gLeftMaxTurn = fLeftMaxTurn;
+  float fCenterTurn = 0.0;
+  EEPROM.get( iConstAddressOfCenterTurn, fCenterTurn);
+  gCenterTurn = fCenterTurn;
+  float fRightMaxTurn = 0.0;
+  EEPROM.get( iConstAddressOfRightMaxTurn, fRightMaxTurn);
+  gRightMaxTurn = fRightMaxTurn;
+  LOG_F(fLeftMaxTurn);
+  LOG_F(fCenterTurn);
+  LOG_F(fLeftMaxTurn);
 }
+
+
+void calcSteeringTarget(void) {
+  LOG_F(fTargetTurnAngleLeft);
+  LOG_F(fTargetTurnAngleRight);
+}
+
+
+
+
+
 
 #include <tuple>
 #include <vector>
@@ -170,6 +212,7 @@ void calcCalibration(void) {
     gIsCalcCalibration = false;
   }
 }
+
 void calcCalibrationReal(void) {
   if(gStoreMagnet.size() == 0) {
     return;
@@ -282,4 +325,7 @@ void calcCalibrationReal(void) {
   LOG_I(xIndexMinRight);
   LOG_I(yIndexMinRight);
   LOG_I(zIndexMinRight);
+  EEPROM.put(iConstAddressOfLeftMaxTurn,minYLeft);
+  EEPROM.put(iConstAddressOfCenterTurn,maxY);
+  EEPROM.put(iConstAddressOfRightMaxTurn,minYRight);
 }
