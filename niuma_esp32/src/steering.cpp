@@ -58,15 +58,16 @@ volatile static float fTargetTurnAngleLeft = -1.0;
 volatile static float fTargetTurnAngleRight = -1.0;
 volatile static float fTargetTurnAngle = -1.0;
 
-volatile static float fTargetMagnetX = -1.0;
 
 volatile static float gLeftMaxTurn = 0.0;
 volatile static float gCenterTurn = 0.0;
 volatile static float gRightMaxTurn = 0.0;
 
-volatile static float gLeftMaxTurnX = 0.0;
-volatile static float gRightMaxTurnX = 0.0;
+volatile static float gLeftMaxTurnX = 0.021980;
+volatile static float gRightMaxTurnX = 0.461300;
 volatile static float gWidthTurnX = std::abs(gRightMaxTurnX - gLeftMaxTurnX);
+
+volatile static float fTargetMagnetX = (gLeftMaxTurnX+gRightMaxTurnX)/2;
 
 void calcSteeringTarget(void);
 
@@ -150,8 +151,8 @@ void read_angle_table(void) {
   LOG_F(fLeftMaxTurn);
 }
 
-static const float iConstAngleLeftMax = 0.0 - 100.0;
-static const float iConstAngleRightMax = 0.0 + 100.0;
+static const float iConstAngleLeftMax = 0.0 - 45.0;
+static const float iConstAngleRightMax = 0.0 + 45.0;
 static const float iConstAngleWidth = iConstAngleRightMax - iConstAngleLeftMax;
 
 void calcSteeringTargetWithX(void);
@@ -169,12 +170,14 @@ void calcSteeringTargetWithX(void) {
   fTargetMagnetX = gLeftMaxTurnX + (targetRange * gWidthTurnX)/iConstAngleWidth;
 }
 
-static const float fConstDiffOfMangetXSteering = 0.01;
+static const float fConstDiffOfMangetXSteering = 0.25;
 
 void makeSteeringExec(void) {
   const float diffMagnetX =  fTargetMagnetX - magnetX;
+  DUMP_F(diffMagnetX);
   if(std::abs(diffMagnetX) > fConstDiffOfMangetXSteering ) {
-    if(diffMagnetX > 0.0) {
+    LOG_F(diffMagnetX);
+    if(diffMagnetX < 0.0) {
       gDriveMotorExtend = 0;
       gDriveMotorReduce = 1;
     } else {
@@ -182,6 +185,8 @@ void makeSteeringExec(void) {
       gDriveMotorReduce = 0;
     }
   }
+  DUMP_I(gDriveMotorExtend);
+  DUMP_I(gDriveMotorReduce);
 }
 
 
