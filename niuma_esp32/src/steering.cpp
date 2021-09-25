@@ -53,6 +53,11 @@ volatile uint8_t gDriveMotorExtend = 1;
 volatile uint8_t gDriveMotorReduce = 1;
 volatile static float fTargetTurnAngleLeft = -1.0;
 volatile static float fTargetTurnAngleRight = -1.0;
+
+volatile static float gLeftMaxTurn = 0.0;
+volatile static float gCenterTurn = 0.0;
+volatile static float gRightMaxTurn = 0.0;
+
 void refreshExternSteeringCommand(float angle,bool brake) {
   if(brake) {
     gDriveMotorExtend = 1;
@@ -75,6 +80,11 @@ void refreshExternSteeringCommand(float angle,bool brake) {
   LOG_I(gDriveMotorReduce);
   LOG_F(fTargetTurnAngleLeft);
   LOG_F(fTargetTurnAngleRight);
+
+  LOG_F(gLeftMaxTurn);
+  LOG_F(gCenterTurn);
+  LOG_F(gRightMaxTurn);
+
 }
 
 static const long constSteeringMotorIntervalMS = 200; 
@@ -104,9 +114,6 @@ static const int iConstAddressOfLeftMaxTurn = 0;
 static const int iConstAddressOfCenterTurn = iConstAddressOfLeftMaxTurn + sizeof(float);
 static const int iConstAddressOfRightMaxTurn = iConstAddressOfCenterTurn + sizeof(float);
 
-static float gLeftMaxTurn = 0.0;
-static float gCenterTurn = 0.0;
-static float gRightMaxTurn = 0.0;
 
 void read_angle_table(void) {
   float fLeftMaxTurn = 0.0;
@@ -125,8 +132,8 @@ void read_angle_table(void) {
 
 
 void calcSteeringTarget(void) {
-  LOG_F(fTargetTurnAngleLeft);
-  LOG_F(fTargetTurnAngleRight);
+  DUMP_F(fTargetTurnAngleLeft);
+  DUMP_F(fTargetTurnAngleRight);
 }
 
 
@@ -328,4 +335,8 @@ void calcCalibrationReal(void) {
   EEPROM.put(iConstAddressOfLeftMaxTurn,minYLeft);
   EEPROM.put(iConstAddressOfCenterTurn,maxY);
   EEPROM.put(iConstAddressOfRightMaxTurn,minYRight);
+  gLeftMaxTurn = minYLeft;
+  gCenterTurn = maxY;
+  gRightMaxTurn = minYRight;
+
 }
