@@ -17,7 +17,7 @@ void SteeringMotorTask( void * parameter) {
   for(;;) {//
     execSteeringCalibration();
     calcCalibration();
-    calcSteeringTarget();
+    //calcSteeringTarget();
     execSteeringMotor();
     delay(1);
   }
@@ -55,13 +55,15 @@ volatile static float fTargetTurnAngleLeft = -1.0;
 volatile static float fTargetTurnAngleRight = -1.0;
 volatile static float fTargetTurnAngle = -1.0;
 
+volatile static float fTargetMagnetX = -1.0;
+
 volatile static float gLeftMaxTurn = 0.0;
 volatile static float gCenterTurn = 0.0;
 volatile static float gRightMaxTurn = 0.0;
 
 volatile static float gLeftMaxTurnX = 0.0;
 volatile static float gRightMaxTurnX = 0.0;
-volatile static float gWdithTurnX = std::abs(gRightMaxTurnX - gLeftMaxTurnX);
+volatile static float gWidthTurnX = std::abs(gRightMaxTurnX - gLeftMaxTurnX);
 
 void refreshExternSteeringCommand(float angle,bool brake) {
   if(brake) {
@@ -82,17 +84,21 @@ void refreshExternSteeringCommand(float angle,bool brake) {
     fTargetTurnAngle = angle;
   }
   gMilliSecAtLastCommand = millis();
-  LOG_I(gDriveMotorExtend);
-  LOG_I(gDriveMotorReduce);
-  LOG_F(fTargetTurnAngleLeft);
-  LOG_F(fTargetTurnAngleRight);
+  DUMP_I(gDriveMotorExtend);
+  DUMP_I(gDriveMotorReduce);
+  DUMP_F(fTargetTurnAngleLeft);
+  DUMP_F(fTargetTurnAngleRight);
 
-  LOG_F(gLeftMaxTurn);
-  LOG_F(gCenterTurn);
-  LOG_F(gRightMaxTurn);
+  DUMP_F(gLeftMaxTurn);
+  DUMP_F(gCenterTurn);
+  DUMP_F(gRightMaxTurn);
 
+  LOG_F(fTargetTurnAngle);
   LOG_F(gLeftMaxTurnX);
   LOG_F(gRightMaxTurnX);
+
+  calcSteeringTarget();
+  LOG_F(fTargetMagnetX);
 
 }
 
@@ -152,9 +158,10 @@ void calcSteeringTarget(void) {
 
 
 void calcSteeringTargetWithX(void) {
-  DUMP_F(fTargetTurnAngle);
-  const float targetRange = fTargetTurnAngle + iConstAngleWidth;
-  const float targetMagnetX = gLeftMaxTurnX + (targetRange * gWdithTurnX)/iConstAngleWidth;
+  LOG_F(fTargetTurnAngle);
+  const float targetRange = fTargetTurnAngle - iConstAngleLeftMax;
+  LOG_F(targetRange);
+  fTargetMagnetX = gLeftMaxTurnX + (targetRange * gWidthTurnX)/iConstAngleWidth;
 }
 
 
@@ -358,7 +365,7 @@ void calcCalibrationReal(void) {
   gRightMaxTurn = minYRight;
 
 
-  gLeftMaxTurnX = minXLeft;
-  gRightMaxTurnX = maxY;
-  gWdithTurnX = std::abs(gRightMaxTurnX - gLeftMaxTurnX);
+  gLeftMaxTurnX = std::min(minXLeft,minXRight);
+  gRightMaxTurnX = maxX;
+  gWidthTurnX = std::abs(gRightMaxTurnX - gLeftMaxTurnX);
 }
