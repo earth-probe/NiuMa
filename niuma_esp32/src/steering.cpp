@@ -102,9 +102,9 @@ void refreshExternSteeringCalibration(bool run) {
   gStoreMagnet.clear();
 }
 
-static const long constSteeringCalibrationStage1 = 500;
-static const long constSteeringCalibrationStage2 = constSteeringCalibrationStage1 + 1000;
-static const long constSteeringCalibrationFinnish = constSteeringCalibrationStage2 + 1000;
+static const long constSteeringCalibrationStage1 = 1000;
+static const long constSteeringCalibrationStage2 = constSteeringCalibrationStage1 + 2000;
+static const long constSteeringCalibrationFinnish = constSteeringCalibrationStage2 + 2000;
 
 
 static const float fConstMagnetMin = 0.001;
@@ -146,6 +146,9 @@ void execSteeringCalibration(void) {
         prevmagnetX = magnetX;
         prevmagnetY = magnetY;
         prevmagnetZ = magnetZ;
+        LOG_F(magnetX);
+        LOG_F(magnetY);
+        LOG_F(magnetZ);
         auto magnet = std::make_tuple(magnetX,magnetY,magnetZ);
         gStoreMagnet.push_back(magnet);
       }
