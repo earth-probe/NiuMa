@@ -53,10 +53,15 @@ volatile uint8_t gDriveMotorExtend = 1;
 volatile uint8_t gDriveMotorReduce = 1;
 volatile static float fTargetTurnAngleLeft = -1.0;
 volatile static float fTargetTurnAngleRight = -1.0;
+volatile static float fTargetTurnAngle = -1.0;
 
 volatile static float gLeftMaxTurn = 0.0;
 volatile static float gCenterTurn = 0.0;
 volatile static float gRightMaxTurn = 0.0;
+
+volatile static float gLeftMaxTurnX = 0.0;
+volatile static float gRightMaxTurnX = 0.0;
+volatile static float gWdithTurnX = std::abs(gRightMaxTurnX - gLeftMaxTurnX);
 
 void refreshExternSteeringCommand(float angle,bool brake) {
   if(brake) {
@@ -74,6 +79,7 @@ void refreshExternSteeringCommand(float angle,bool brake) {
       fTargetTurnAngleLeft = angle;
       fTargetTurnAngleRight = -1.0;
     }
+    fTargetTurnAngle = angle;
   }
   gMilliSecAtLastCommand = millis();
   LOG_I(gDriveMotorExtend);
@@ -84,6 +90,9 @@ void refreshExternSteeringCommand(float angle,bool brake) {
   LOG_F(gLeftMaxTurn);
   LOG_F(gCenterTurn);
   LOG_F(gRightMaxTurn);
+
+  LOG_F(gLeftMaxTurnX);
+  LOG_F(gRightMaxTurnX);
 
 }
 
@@ -130,14 +139,23 @@ void read_angle_table(void) {
   LOG_F(fLeftMaxTurn);
 }
 
+static const float iConstAngleLeftMax = 0.0 - 100.0;
+static const float iConstAngleRightMax = 0.0 + 100.0;
+static const float iConstAngleWidth = iConstAngleRightMax - iConstAngleLeftMax;
 
+void calcSteeringTargetWithX(void);
 void calcSteeringTarget(void) {
   DUMP_F(fTargetTurnAngleLeft);
   DUMP_F(fTargetTurnAngleRight);
+  calcSteeringTargetWithX();
 }
 
 
-
+void calcSteeringTargetWithX(void) {
+  DUMP_F(fTargetTurnAngle);
+  const float targetRange = fTargetTurnAngle + iConstAngleWidth;
+  const float targetMagnetX = gLeftMaxTurnX + (targetRange * gWdithTurnX)/iConstAngleWidth;
+}
 
 
 
@@ -339,4 +357,8 @@ void calcCalibrationReal(void) {
   gCenterTurn = maxY;
   gRightMaxTurn = minYRight;
 
+
+  gLeftMaxTurnX = minXLeft;
+  gRightMaxTurnX = maxY;
+  gWdithTurnX = std::abs(gRightMaxTurnX - gLeftMaxTurnX);
 }
