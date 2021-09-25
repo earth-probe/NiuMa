@@ -97,8 +97,11 @@ void read_angle_table(void) {
 std::vector<std::tuple<float,float,float>> gStoreMagnet; 
 
 static volatile bool gIsCalcCalibration = false;
+static const long constSteeringCalibrationStage1 = 2000;
+static const long constSteeringCalibrationFinnish = constSteeringCalibrationStage1 + 3000;
+static const long constSteeringCalibrationCalc = constSteeringCalibrationFinnish + 100;
+static auto gMilliSecStartCalibration = millis()  - constSteeringCalibrationCalc;
 
-static auto gMilliSecStartCalibration = millis();
 void refreshExternSteeringCalibration(bool run) {
   gMilliSecStartCalibration = millis();
   gDriveMotorExtend4Calibration = 0;
@@ -107,12 +110,8 @@ void refreshExternSteeringCalibration(bool run) {
   gIsCalcCalibration = true;
 }
 
-static const long constSteeringCalibrationStage1 = 1000;
-static const long constSteeringCalibrationFinnish = constSteeringCalibrationStage1 + 2000;
-static const long constSteeringCalibrationCalc = constSteeringCalibrationFinnish + 100;
 
-
-static const float fConstMagnetMin = 0.001;
+static const float fConstMagnetMin = 0.01;
 
 void execSteeringCalibration(void) {
   auto const escaped_ms = millis() - gMilliSecStartCalibration;

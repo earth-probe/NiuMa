@@ -193,6 +193,7 @@ void reportIMU(void)
     imuVal += "}\r\n";
     pTxCharacteristic->setValue(imuVal);
     pTxCharacteristic->notify();
+    delay(10);
   }
   {
     std::string imuVal = "{\"my\":";
@@ -200,6 +201,7 @@ void reportIMU(void)
     imuVal += "}\r\n";
     pTxCharacteristic->setValue(imuVal);
     pTxCharacteristic->notify();
+    delay(10);
   }
   {
     std::string imuVal = "{\"mz\":";
@@ -207,6 +209,7 @@ void reportIMU(void)
     imuVal += "}\r\n";
     pTxCharacteristic->setValue(imuVal);
     pTxCharacteristic->notify();
+    delay(10);
   }
 }
 extern volatile bool gIsRunCalibration;
