@@ -282,6 +282,4 @@ void calcCalibrationReal(void) {
   LOG_I(xIndexMinRight);
   LOG_I(yIndexMinRight);
   LOG_I(zIndexMinRight);
-
-
 }
