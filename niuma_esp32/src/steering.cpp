@@ -179,12 +179,14 @@ void calcSteeringTargetWithX(void) {
 }
 
 static const float fConstDiffOfMangetXSteering = 0.25;
-static const uint8_t fConstSpeedIOVolt = 255;
+static const float fConstSpeedIOVolt = 255.0;
+static const uint8_t iConstSpeedIOVolt = static_cast<uint8_t>(fConstSpeedIOVolt);
 
 void makeSteeringExec(void) {
   const float diffMagnetX =  fTargetMagnetX - magnetX;
+  const float absDiffMagnetX = std::abs(diffMagnetX);
   DUMP_F(diffMagnetX);
-  if(std::abs(diffMagnetX) > fConstDiffOfMangetXSteering ) {
+  if(absDiffMagnetX > fConstDiffOfMangetXSteering ) {
     LOG_F(diffMagnetX);
     if(diffMagnetX < 0.0) {
       gDriveMotorExtend = 0;
@@ -193,12 +195,13 @@ void makeSteeringExec(void) {
       gDriveMotorExtend = 1;
       gDriveMotorReduce = 0;
     }
-    const float diff2Speed = (std::abs(diffMagnetX) *fConstSpeedIOVolt) / iConstAngleWidth;
+    const float diff2Speed = (absDiffMagnetX *fConstSpeedIOVolt) / iConstAngleWidth;
     gISpeedSteering = static_cast<uint8_t>(diff2Speed);
     LOG_I(gISpeedSteering);
-    if(gISpeedSteering > fConstSpeedIOVolt) {
-      gISpeedSteering = fConstSpeedIOVolt;
+    if(gISpeedSteering > iConstSpeedIOVolt) {
+      gISpeedSteering = iConstSpeedIOVolt;
     }
+    LOG_I(gISpeedSteering);
   }
   DUMP_I(gDriveMotorExtend);
   DUMP_I(gDriveMotorReduce);

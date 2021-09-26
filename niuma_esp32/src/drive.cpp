@@ -13,7 +13,7 @@ void DriveMotorTask( void * parameter) {
   }
 }
 
-static const uint8_t iConstPinSpeed = GPIO_NUM_25; 
+static const uint8_t iConstPinSpeed = GPIO_NUM_25;
 static const uint8_t iConstPinDIR = GPIO_NUM_33;
 static const uint8_t iConstPinBrake = GPIO_NUM_32;
 static const uint8_t iConstPinLevelOE = GPIO_NUM_27;
