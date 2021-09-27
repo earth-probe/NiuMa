@@ -24,10 +24,10 @@ LSM9DS1 imu;
 void setupIMU(void) {
   Wire.begin();
   auto isGood = imu.begin(LSM9DS1_AG, LSM9DS1_M, Wire);
-  DUMP_I(isGood);  
+  LOG_I(isGood);  
 }
 
-static const long constReadImuIntervalMS = 20;
+static const long constReadImuIntervalMS = 10;
 volatile float accX;
 volatile float accY;
 volatile float accZ;
