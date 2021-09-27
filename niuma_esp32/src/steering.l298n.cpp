@@ -77,8 +77,8 @@ volatile static float gLeftMaxTurn = 0.0;
 volatile static float gCenterTurn = 0.0;
 volatile static float gRightMaxTurn = 0.0;
 
-volatile static float gLeftMaxTurnX = 0.021980;
-volatile static float gRightMaxTurnX = 0.461300;
+volatile static float gLeftMaxTurnX = -0.055160;
+volatile static float gRightMaxTurnX = 0.413280;
 volatile static float gWidthTurnX = std::abs(gRightMaxTurnX - gLeftMaxTurnX);
 
 volatile static float fTargetMagnetX = (gLeftMaxTurnX+gRightMaxTurnX)/2;
@@ -125,7 +125,6 @@ void refreshExternSteeringCommand(float angle,bool brake) {
 
 }
 
-static const long constSteeringMotorIntervalMS = 200; 
 
 volatile bool gIsRunCalibration = false;
 
@@ -133,7 +132,7 @@ volatile bool gIsRunCalibration = false;
 uint8_t gDriveMotorExtend4Calibration = HIGH;
 uint8_t gDriveMotorReduce4Calibration = HIGH;
 
-static const float fConstSpeedIOVoltMin = 96.0;
+static const float fConstSpeedIOVoltMin = 80.0;
 static const uint8_t iConstSpeedIOVoltMin = static_cast<uint8_t>(fConstSpeedIOVoltMin);
 static const float fConstSpeedIOVoltMax = 255.0;
 static const float fConstSpeedIOVoltWidth = fConstSpeedIOVoltMax -fConstSpeedIOVoltMin;
@@ -195,8 +194,8 @@ void calcSteeringTargetWithX(void) {
   fTargetMagnetX = gLeftMaxTurnX + (targetRange * gWidthTurnX)/iConstAngleWidth;
 }
 
-static const float fConstDiffOfMangetXSteering = 0.2;
-
+static const float fConstDiffOfMangetXSteering = 0.05;
+static const float fConstDiffGainOfK = 0.8;
 void makeSteeringExec(void) {
   const float diffMagnetX =  fTargetMagnetX - magnetX;
   const float absDiffMagnetX = std::abs(diffMagnetX);
@@ -210,11 +209,13 @@ void makeSteeringExec(void) {
       gDriveMotorExtend = 1;
       gDriveMotorReduce = 0;
     }
-    LOG_F(absDiffMagnetX);
-    LOG_F(fConstSpeedIOVoltMax);
-    LOG_F(gWidthTurnX);
+    //LOG_F(absDiffMagnetX);
+    //LOG_F(fConstSpeedIOVoltMax);
+    //LOG_F(gWidthTurnX);
     
-    const float diff2Speed = fConstSpeedIOVoltMin + (absDiffMagnetX *fConstSpeedIOVoltWidth) / gWidthTurnX;
+    float diff2Speed = fConstSpeedIOVoltMin + (absDiffMagnetX *fConstSpeedIOVoltWidth) / gWidthTurnX;
+    LOG_F(diff2Speed);
+    diff2Speed *= fConstDiffGainOfK;
     LOG_F(diff2Speed);
     gISpeedSteering = static_cast<uint8_t>(diff2Speed);
     LOG_I(gISpeedSteering);
@@ -225,6 +226,8 @@ void makeSteeringExec(void) {
       gISpeedSteering = iConstSpeedIOVoltMin;
     }
     LOG_I(gISpeedSteering); 
+  } else {
+    gISpeedSteering = 0;
   }
   DUMP_I(gDriveMotorExtend);
   DUMP_I(gDriveMotorReduce);
