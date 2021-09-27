@@ -42,7 +42,9 @@ extern volatile float magnetZ;
 static const uint8_t iConstPinExtend = GPIO_NUM_17; 
 static const uint8_t iConstPinReduce = GPIO_NUM_18;
 static const uint8_t iConstPinSteeringLevelOE = GPIO_NUM_19;
-static const uint8_t iConstPinSpeed = GPIO_NUM_26;
+static const uint8_t iConstPinSpeed1 = GPIO_NUM_26;
+static const uint8_t iConstPinSpeed2 = GPIO_NUM_25;
+
 
 void setupSteeringMotor(void) {
   pinMode(iConstPinExtend, OUTPUT);
@@ -51,8 +53,11 @@ void setupSteeringMotor(void) {
   pinMode(iConstPinSteeringLevelOE, OUTPUT);
   digitalWrite(iConstPinSteeringLevelOE,1);
 
-  pinMode(iConstPinSpeed, OUTPUT);
-  dacWrite(iConstPinSpeed,0);
+  pinMode(iConstPinSpeed1, OUTPUT);
+  dacWrite(iConstPinSpeed1,0);
+  pinMode(iConstPinSpeed2, OUTPUT);
+  dacWrite(iConstPinSpeed2,0);
+
 }
 
 static auto gMilliSecAtLastCommand = millis();
@@ -73,7 +78,9 @@ volatile static float gWidthTurnX = std::abs(gRightMaxTurnX - gLeftMaxTurnX);
 
 volatile static float fTargetMagnetX = (gLeftMaxTurnX+gRightMaxTurnX)/2;
 
-volatile static uint8_t gISpeedSteering = 0;
+volatile static uint8_t gISpeedSteering1 = 0;
+volatile static uint8_t gISpeedSteering2 = 0;
+
 
 void calcSteeringTarget(void);
 
@@ -128,11 +135,11 @@ void execSteeringMotor(void) {
   if(gIsRunCalibration) {
     digitalWrite(iConstPinExtend,gDriveMotorExtend4Calibration);
     digitalWrite(iConstPinReduce,gDriveMotorReduce4Calibration);
-    dacWrite(iConstPinSpeed,255);
+    dacWrite(iConstPinSpeed1,0);
   } else {
     digitalWrite(iConstPinExtend,gDriveMotorExtend);
     digitalWrite(iConstPinReduce,gDriveMotorReduce);
-    dacWrite(iConstPinSpeed,gISpeedSteering);
+    dacWrite(iConstPinSpeed1,gISpeedSteering);
   }
 }
 
