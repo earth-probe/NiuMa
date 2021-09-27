@@ -195,13 +195,18 @@ void makeSteeringExec(void) {
       gDriveMotorExtend = 1;
       gDriveMotorReduce = 0;
     }
-    const float diff2Speed = (absDiffMagnetX *fConstSpeedIOVolt) / iConstAngleWidth;
+    LOG_F(absDiffMagnetX);
+    LOG_F(fConstSpeedIOVolt);
+    LOG_F(gWidthTurnX);
+    const float diff2Speed = (absDiffMagnetX *fConstSpeedIOVolt) / gWidthTurnX;
+    LOG_F(diff2Speed);
     gISpeedSteering = static_cast<uint8_t>(diff2Speed);
     LOG_I(gISpeedSteering);
     if(gISpeedSteering > iConstSpeedIOVolt) {
       gISpeedSteering = iConstSpeedIOVolt;
     }
     LOG_I(gISpeedSteering);
+    gISpeedSteering = 0;
   }
   DUMP_I(gDriveMotorExtend);
   DUMP_I(gDriveMotorReduce);
