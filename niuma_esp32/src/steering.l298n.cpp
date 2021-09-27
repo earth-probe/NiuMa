@@ -83,8 +83,7 @@ volatile static float gWidthTurnX = std::abs(gRightMaxTurnX - gLeftMaxTurnX);
 
 volatile static float fTargetMagnetX = (gLeftMaxTurnX+gRightMaxTurnX)/2;
 
-volatile static uint8_t gISpeedSteering1 = 0;
-volatile static uint8_t gISpeedSteering2 = 0;
+volatile static uint8_t gISpeedSteering = 0;
 
 
 void calcSteeringTarget(void);
@@ -134,9 +133,9 @@ volatile bool gIsRunCalibration = false;
 uint8_t gDriveMotorExtend4Calibration = HIGH;
 uint8_t gDriveMotorReduce4Calibration = HIGH;
 
-static const float fConstSpeedIOVoltMin = 30.0;
+static const float fConstSpeedIOVoltMin = 96.0;
 static const uint8_t iConstSpeedIOVoltMin = static_cast<uint8_t>(fConstSpeedIOVoltMin);
-static const float fConstSpeedIOVoltMax = 100.0;
+static const float fConstSpeedIOVoltMax = 255.0;
 static const float fConstSpeedIOVoltWidth = fConstSpeedIOVoltMax -fConstSpeedIOVoltMin;
 static const uint8_t iConstSpeedIOVoltMax = static_cast<uint8_t>(fConstSpeedIOVoltMax);
 
@@ -146,11 +145,11 @@ void execSteeringMotor(void) {
   if(gIsRunCalibration) {
     digitalWrite(iConstPinDirIN1,gDriveMotorExtend4Calibration);
     digitalWrite(iConstPinDirIN2,gDriveMotorReduce4Calibration);
-    ledcWrite(iConstPinSteeringPWMChannel,fConstSpeedIOVoltMax);
+    ledcWrite(iConstPinSteeringPWMChannel,iConstSpeedIOVoltMax);
   } else {
     digitalWrite(iConstPinDirIN1,gDriveMotorExtend);
     digitalWrite(iConstPinDirIN2,gDriveMotorReduce);
-    ledcWrite(iConstPinSteeringPWMChannel,gISpeedSteering1);
+    ledcWrite(iConstPinSteeringPWMChannel,gISpeedSteering);
   }
 }
 
@@ -196,7 +195,7 @@ void calcSteeringTargetWithX(void) {
   fTargetMagnetX = gLeftMaxTurnX + (targetRange * gWidthTurnX)/iConstAngleWidth;
 }
 
-static const float fConstDiffOfMangetXSteering = 0.5;
+static const float fConstDiffOfMangetXSteering = 0.2;
 
 void makeSteeringExec(void) {
   const float diffMagnetX =  fTargetMagnetX - magnetX;
@@ -217,26 +216,15 @@ void makeSteeringExec(void) {
     
     const float diff2Speed = fConstSpeedIOVoltMin + (absDiffMagnetX *fConstSpeedIOVoltWidth) / gWidthTurnX;
     LOG_F(diff2Speed);
-    gISpeedSteering1 = static_cast<uint8_t>(diff2Speed);
-    
-
-    LOG_I(gISpeedSteering1);
-    if(gISpeedSteering1 > iConstSpeedIOVoltMax) {
-      gISpeedSteering1 = iConstSpeedIOVoltMax;
+    gISpeedSteering = static_cast<uint8_t>(diff2Speed);
+    LOG_I(gISpeedSteering);
+    if(gISpeedSteering > iConstSpeedIOVoltMax) {
+      gISpeedSteering = iConstSpeedIOVoltMax;
     }
-    if(gISpeedSteering1 < iConstSpeedIOVoltMin) {
-      gISpeedSteering1 = iConstSpeedIOVoltMin;
+    if(gISpeedSteering < iConstSpeedIOVoltMin) {
+      gISpeedSteering = iConstSpeedIOVoltMin;
     }
-    LOG_I(gISpeedSteering2);
-    if(gISpeedSteering2 > iConstSpeedIOVoltMax) {
-      gISpeedSteering2 = iConstSpeedIOVoltMax;
-    }
-    if(gISpeedSteering2 < iConstSpeedIOVoltMin) {
-      gISpeedSteering2 = iConstSpeedIOVoltMin;
-    }
-    LOG_I(gISpeedSteering1); 
-    LOG_I(gISpeedSteering2);
-    gISpeedSteering1 = 0;
+    LOG_I(gISpeedSteering); 
   }
   DUMP_I(gDriveMotorExtend);
   DUMP_I(gDriveMotorReduce);
