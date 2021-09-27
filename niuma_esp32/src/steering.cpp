@@ -1,3 +1,4 @@
+#if 0
 #include <Arduino.h>
 #include "debug.hpp"
 void setupSteeringMotor(void);
@@ -443,3 +444,4 @@ void calcCalibrationReal(void) {
   gRightMaxTurnX = maxX;
   gWidthTurnX = std::abs(gRightMaxTurnX - gLeftMaxTurnX);
 }
+#endif

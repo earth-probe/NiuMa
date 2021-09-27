@@ -1,7 +1,7 @@
 #include <Arduino.h>
 #include <thread>
 #include "debug.hpp"
-void SteeringMotorTask( void * parameter);
+void SteeringMotorTask_l298n( void * parameter);
 void DriveMotorTask( void * parameter);
 void BLETask( void * parameter);
 void IMUTask( void * parameter);
@@ -18,7 +18,7 @@ void setup() {
   xSemaphoreGive(xMutex);
   xTaskCreatePinnedToCore(BLETask, "BLETask", 10000, nullptr, 1, nullptr,  1); 
   xTaskCreatePinnedToCore(IMUTask, "IMUTask", 10000, nullptr, 1, nullptr,  1); 
-  xTaskCreatePinnedToCore(SteeringMotorTask, "SteeringMotorTask", 10000, nullptr, 1, nullptr,  0); 
+  xTaskCreatePinnedToCore(SteeringMotorTask_l298n, "SteeringMotorTask", 10000, nullptr, 1, nullptr,  0); 
   xTaskCreatePinnedToCore(DriveMotorTask, "DriveMotorTask", 10000, nullptr, 1, nullptr,  0); 
 }
 
