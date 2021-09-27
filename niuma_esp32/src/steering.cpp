@@ -129,9 +129,9 @@ volatile bool gIsRunCalibration = false;
 uint8_t gDriveMotorExtend4Calibration = 1;
 uint8_t gDriveMotorReduce4Calibration = 1;
 
-static const float fConstSpeedIOVoltMin = 100.0;
+static const float fConstSpeedIOVoltMin = 30.0;
 static const uint8_t iConstSpeedIOVoltMin = static_cast<uint8_t>(fConstSpeedIOVoltMin);
-static const float fConstSpeedIOVoltMax = 200.0;
+static const float fConstSpeedIOVoltMax = 100.0;
 static const float fConstSpeedIOVoltWidth = fConstSpeedIOVoltMax -fConstSpeedIOVoltMin;
 static const uint8_t iConstSpeedIOVoltMax = static_cast<uint8_t>(fConstSpeedIOVoltMax);
 
@@ -193,7 +193,7 @@ void calcSteeringTargetWithX(void) {
   fTargetMagnetX = gLeftMaxTurnX + (targetRange * gWidthTurnX)/iConstAngleWidth;
 }
 
-static const float fConstDiffOfMangetXSteering = 0.25;
+static const float fConstDiffOfMangetXSteering = 0.5;
 
 void makeSteeringExec(void) {
   const float diffMagnetX =  fTargetMagnetX - magnetX;
