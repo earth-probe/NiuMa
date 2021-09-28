@@ -48,13 +48,6 @@ static const uint8_t iConstPinPWNEna = GPIO_NUM_17;
 static const uint8_t iConstPinDirIN1 = GPIO_NUM_18;
 static const uint8_t iConstPinDirIN2 = GPIO_NUM_19;
 
-static const uint8_t iConstPinSteeringLevelOE = GPIO_NUM_19;
-
-/*
-static const uint8_t iConstPinSpeed1 = GPIO_NUM_26;
-static const uint8_t iConstPinSpeed2 = GPIO_NUM_25;
-*/
-
 
 static const uint8_t iConstPinSteeringPWMChannel = 2;
 
