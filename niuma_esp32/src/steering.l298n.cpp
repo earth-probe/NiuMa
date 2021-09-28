@@ -142,6 +142,7 @@ static const uint8_t iConstSpeedIOVoltMin = static_cast<uint8_t>(fConstSpeedIOVo
 static const float fConstSpeedIOVoltMax = 255.0;
 static const float fConstSpeedIOVoltWidth = fConstSpeedIOVoltMax -fConstSpeedIOVoltMin;
 static const uint8_t iConstSpeedIOVoltMax = static_cast<uint8_t>(fConstSpeedIOVoltMax);
+static volatile bool gIsCalcCalibration = false;
 
 void execSteeringMotor(void) {
   DUMP_I(gDriveMotorExtend);  
@@ -183,12 +184,14 @@ void read_angle_table(void) {
 static const float iConstAngleLeftMax = 0.0 - 45.0;
 static const float iConstAngleRightMax = 0.0 + 45.0;
 static const float iConstAngleWidth = iConstAngleRightMax - iConstAngleLeftMax;
+static float gDiffPIDOfSum = 0.0;
 
 void calcSteeringTargetWithX(void);
 void calcSteeringTarget(void) {
   DUMP_F(fTargetTurnAngleLeft);
   DUMP_F(fTargetTurnAngleRight);
   calcSteeringTargetWithX();
+  gDiffPIDOfSum = 0;
 }
 
 
@@ -199,9 +202,17 @@ void calcSteeringTargetWithX(void) {
   fTargetMagnetX = gLeftMaxTurnX + (targetRange * gWidthTurnX)/iConstAngleWidth;
 }
 
-static const float fConstDiffOfMangetXSteering = 0.05;
-static const float fConstDiffGainOfK = 0.8;
+static const float fConstDiffOfMangetXSteering = 0.025;
+
+static const float fConstDiffGainOfKp = 0.6;
+static const float fConstDiffGainOfKi = 0.06;
+static const float fConstDiffGainOfKd = 0.2;
+static float gDiffPIDOfDivPrev = 0.0;
+
 void makeSteeringExec(void) {
+  if(gIsCalcCalibration) {
+    return;
+  }
   const float diffMagnetX =  fTargetMagnetX - magnet4SteeringX;
   const float absDiffMagnetX = std::abs(diffMagnetX);
   DUMP_F(diffMagnetX);
@@ -214,13 +225,19 @@ void makeSteeringExec(void) {
       gDriveMotorExtend = 1;
       gDriveMotorReduce = 0;
     }
-    //LOG_F(absDiffMagnetX);
-    //LOG_F(fConstSpeedIOVoltMax);
-    //LOG_F(gWidthTurnX);
+    LOG_F(absDiffMagnetX);
+    LOG_F(fConstSpeedIOVoltMax);
+    LOG_F(gWidthTurnX);
     
     float diff2Speed = fConstSpeedIOVoltMin + (absDiffMagnetX *fConstSpeedIOVoltWidth) / gWidthTurnX;
     LOG_F(diff2Speed);
-    diff2Speed *= fConstDiffGainOfK;
+    gDiffPIDOfSum += diff2Speed;
+    
+    diff2Speed = diff2Speed * fConstDiffGainOfKp;
+    diff2Speed += gDiffPIDOfSum * fConstDiffGainOfKi;
+    diff2Speed += (diff2Speed-gDiffPIDOfDivPrev) * fConstDiffGainOfKd;
+    gDiffPIDOfDivPrev = diff2Speed;
+
     LOG_F(diff2Speed);
     gISpeedSteering = static_cast<uint8_t>(diff2Speed);
     LOG_I(gISpeedSteering);
@@ -233,6 +250,9 @@ void makeSteeringExec(void) {
     LOG_I(gISpeedSteering); 
   } else {
     gISpeedSteering = 0;
+    gDiffPIDOfSum = 0;
+    gDriveMotorExtend = HIGH;
+    gDriveMotorReduce = HIGH;
   }
   DUMP_I(gDriveMotorExtend);
   DUMP_I(gDriveMotorReduce);
@@ -243,7 +263,6 @@ void makeSteeringExec(void) {
 #include <vector>
 std::vector<std::tuple<float,float,float>> gStoreMagnet; 
 
-static volatile bool gIsCalcCalibration = false;
 static const long constSteeringCalibrationStage1 = 2000;
 static const long constSteeringCalibrationFinnish = constSteeringCalibrationStage1 + 3000;
 static const long constSteeringCalibrationCalc = constSteeringCalibrationFinnish + 100;
@@ -258,7 +277,7 @@ void refreshExternSteeringCalibration(bool run) {
 }
 
 
-static const float fConstMagnetMin = 0.01;
+static const float fConstMagnetMin = 0.001;
 
 void execSteeringCalibration(void) {
   auto const escaped_ms = millis() - gMilliSecStartCalibration;
