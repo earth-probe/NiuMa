@@ -22,7 +22,7 @@ void SteeringMotorTask_l298n( void * parameter) {
     makeSteeringExec();
     execSteeringMotor();
     
-    delay(1);
+    delay(20);
   }
 }
 
