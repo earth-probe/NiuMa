@@ -24,19 +24,28 @@ LSM9DS1 imu;
 void setupIMU(void) {
   Wire.begin();
   auto isGood = imu.begin(LSM9DS1_AG, LSM9DS1_M, Wire);
-  LOG_I(isGood);  
+  LOG_I(isGood);
+  imu.calibrateMag();
 }
 
-static const long constReadImuIntervalMS = 10;
+static const long constReadImuIntervalMS = 16;
 volatile float accX;
 volatile float accY;
 volatile float accZ;
 volatile float gyroX;
 volatile float gyroY;
 volatile float gyroZ;
+
 volatile float magnetX;
 volatile float magnetY;
 volatile float magnetZ;
+
+volatile float magnet4SteeringX = 0.0;
+volatile float magnet4SteeringY = 0.0;
+volatile float magnet4SteeringZ = 0.0;
+static const float magnetFilterFatorA = 0.2; 
+static const float magnetFilterFatorB = 1.0 - magnetFilterFatorA; 
+
 
 
 void readIMU(void) {
@@ -76,6 +85,11 @@ void readIMU(void) {
   magnetX = imu.calcMag(imu.mx);
   magnetY = imu.calcMag(imu.my);
   magnetZ = imu.calcMag(imu.mz);
+
+  magnet4SteeringX = magnet4SteeringX * magnetFilterFatorA + magnetX * magnetFilterFatorB;
+  magnet4SteeringY = magnet4SteeringY * magnetFilterFatorA + magnetY * magnetFilterFatorB;
+  magnet4SteeringZ = magnet4SteeringZ * magnetFilterFatorA + magnetZ * magnetFilterFatorB;
+  
   gyroX = imu.calcGyro(imu.gx);
   gyroY = imu.calcGyro(imu.gy);
   gyroZ = imu.calcGyro(imu.gz);

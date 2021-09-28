@@ -26,6 +26,7 @@ void SteeringMotorTask_l298n( void * parameter) {
   }
 }
 
+/*
 extern volatile float accX;
 extern volatile float accY;
 extern volatile float accZ;
@@ -35,7 +36,11 @@ extern volatile float gyroZ;
 extern volatile float magnetX;
 extern volatile float magnetY;
 extern volatile float magnetZ;
+*/
 
+extern volatile float magnet4SteeringX;
+extern volatile float magnet4SteeringY;
+extern volatile float magnet4SteeringZ;
 
 
 
@@ -197,7 +202,7 @@ void calcSteeringTargetWithX(void) {
 static const float fConstDiffOfMangetXSteering = 0.05;
 static const float fConstDiffGainOfK = 0.8;
 void makeSteeringExec(void) {
-  const float diffMagnetX =  fTargetMagnetX - magnetX;
+  const float diffMagnetX =  fTargetMagnetX - magnet4SteeringX;
   const float absDiffMagnetX = std::abs(diffMagnetX);
   DUMP_F(diffMagnetX);
   if(absDiffMagnetX > fConstDiffOfMangetXSteering ) {
@@ -275,23 +280,23 @@ void execSteeringCalibration(void) {
   }
   if(storeManget) {
     if(gStoreMagnet.size() == 0) {
-      auto magnet = std::make_tuple(magnetX,magnetY,magnetZ);
+      auto magnet = std::make_tuple(magnet4SteeringX,magnet4SteeringY,magnet4SteeringZ);
       gStoreMagnet.push_back(magnet);
     } else {
-      static auto prevmagnetX = magnetX;
-      static auto prevmagnetY = magnetY;
-      static auto prevmagnetZ = magnetZ;
-      if( std::abs(prevmagnetX - magnetX) > fConstMagnetMin ||
-        std::abs(prevmagnetY - magnetY) > fConstMagnetMin ||
-        std::abs(prevmagnetZ - magnetZ) > fConstMagnetMin 
+      static auto prevmagnetX = magnet4SteeringX;
+      static auto prevmagnetY = magnet4SteeringY;
+      static auto prevmagnetZ = magnet4SteeringZ;
+      if( std::abs(prevmagnetX - magnet4SteeringX) > fConstMagnetMin ||
+        std::abs(prevmagnetY - magnet4SteeringY) > fConstMagnetMin ||
+        std::abs(prevmagnetZ - magnet4SteeringZ) > fConstMagnetMin 
       ) {
-        prevmagnetX = magnetX;
-        prevmagnetY = magnetY;
-        prevmagnetZ = magnetZ;
-        //LOG_F(magnetX);
-        //LOG_F(magnetY);
-        //LOG_F(magnetZ);
-        auto magnet = std::make_tuple(magnetX,magnetY,magnetZ);
+        prevmagnetX = magnet4SteeringX;
+        prevmagnetY = magnet4SteeringY;
+        prevmagnetZ = magnet4SteeringZ;
+        //LOG_F(magnet4SteeringX);
+        //LOG_F(magnet4SteeringY);
+        //LOG_F(magnet4SteeringZ);
+        auto magnet = std::make_tuple(magnet4SteeringX,magnet4SteeringY,magnet4SteeringZ);
         gStoreMagnet.push_back(magnet);
       }
     }
