@@ -75,8 +75,8 @@ volatile static float gLeftMaxTurn = 0.0;
 volatile static float gCenterTurn = 0.0;
 volatile static float gRightMaxTurn = 0.0;
 
-volatile static float gLeftMaxTurnX = -0.055160;
-volatile static float gRightMaxTurnX = 0.413280;
+volatile static float gLeftMaxTurnX = -0.209314;
+volatile static float gRightMaxTurnX = 0.357031;
 volatile static float gWidthTurnX = std::abs(gRightMaxTurnX - gLeftMaxTurnX);
 
 volatile static float fTargetMagnetX = (gLeftMaxTurnX+gRightMaxTurnX)/2;
@@ -193,12 +193,13 @@ void calcSteeringTargetWithX(void) {
   const float targetRange = fTargetTurnAngle - iConstAngleLeftMax;
   LOG_F(targetRange);
   fTargetMagnetX = gLeftMaxTurnX + (targetRange * gWidthTurnX)/iConstAngleWidth;
+  LOG_F(fTargetMagnetX);
 }
 
 static const float fConstDiffOfMangetXSteering = 0.025;
 
-static const float fConstDiffGainOfKp = 0.6;
-static const float fConstDiffGainOfKi = 0.06;
+static const float fConstDiffGainOfKp = 1.0;
+static const float fConstDiffGainOfKi = 0.05;
 static const float fConstDiffGainOfKd = 0.2;
 static float gDiffPIDOfDivPrev = 0.0;
 
@@ -232,8 +233,7 @@ void makeSteeringExec(void) {
     float diff2Speed = fConstSpeedIOVoltMin + (pidAdjustValue *fConstSpeedIOVoltWidth) / gWidthTurnX;
     LOG_F(diff2Speed);
     /*
-    gDiffPIDOfSum += diff2Speed;
-    
+    gDiffPIDOfSum += diff2Speed;    
     diff2Speed = diff2Speed * fConstDiffGainOfKp;
     diff2Speed += gDiffPIDOfSum * fConstDiffGainOfKi;
     diff2Speed += (diff2Speed-gDiffPIDOfDivPrev) * fConstDiffGainOfKd;
