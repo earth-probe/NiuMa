@@ -219,37 +219,37 @@ void makeSteeringExec(void) {
       gDriveMotorExtend = 1;
       gDriveMotorReduce = 0;
     }
-    LOG_F(absDiffMagnetX);
-    LOG_F(fConstSpeedIOVoltMax);
-    LOG_F(gWidthTurnX);
+    DUMP_F(absDiffMagnetX);
+    DUMP_F(fConstSpeedIOVoltMax);
+    DUMP_F(gWidthTurnX);
 
 
     auto pidAdjustValue = absDiffMagnetX * fConstDiffGainOfKp;
     gDiffPIDOfSum += absDiffMagnetX;    
-    LOG_F(gDiffPIDOfSum);
+    DUMP_F(gDiffPIDOfSum);
 
     pidAdjustValue += gDiffPIDOfSum * fConstDiffGainOfKi;
 
     pidAdjustValue += (absDiffMagnetX-gDiffPIDOfDivPrev) * fConstDiffGainOfKd;
     gDiffPIDOfDivPrev = absDiffMagnetX;
   
-    LOG_F(pidAdjustValue);
+    DUMP_F(pidAdjustValue);
     float diff2Speed = fConstSpeedIOVoltMin + (pidAdjustValue *fConstSpeedIOVoltWidth) / gWidthTurnX;
-    LOG_F(diff2Speed);
+    DUMP_F(diff2Speed);
     if(diff2Speed > fConstSpeedIOVoltMax) {
       diff2Speed = fConstSpeedIOVoltMax;
     }
-    LOG_F(diff2Speed);
+    DUMP_F(diff2Speed);
     
     gISpeedSteering = static_cast<uint8_t>(diff2Speed);
-    LOG_I(gISpeedSteering);
+    DUMP_I(gISpeedSteering);
     if(gISpeedSteering > iConstSpeedIOVoltMax) {
       gISpeedSteering = iConstSpeedIOVoltMax;
     }
     if(gISpeedSteering < iConstSpeedIOVoltMin) {
       gISpeedSteering = iConstSpeedIOVoltMin;
     }
-    LOG_I(gISpeedSteering); 
+    DUMP_I(gISpeedSteering); 
   } else {
     gISpeedSteering = 0;
     static int counterOfSum = 0;
