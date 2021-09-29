@@ -198,7 +198,7 @@ void calcSteeringTargetWithX(void) {
 
 static const float fConstDiffOfMangetXSteering = 0.025;
 
-static const float fConstDiffGainOfKp = 1.0;
+static const float fConstDiffGainOfKp = 4.0;
 static const float fConstDiffGainOfKi = 0.05;
 static const float fConstDiffGainOfKd = 0.2;
 static float gDiffPIDOfDivPrev = 0.0;
@@ -223,15 +223,13 @@ void makeSteeringExec(void) {
     LOG_F(fConstSpeedIOVoltMax);
     LOG_F(gWidthTurnX);
 
+/*
     gDiffPIDOfSum += absDiffMagnetX;
-    gDiffPIDOfDivPrev = absDiffMagnetX;
     auto pidAdjustValue = absDiffMagnetX * fConstDiffGainOfKp;
     pidAdjustValue += gDiffPIDOfSum * fConstDiffGainOfKi;
     pidAdjustValue += (absDiffMagnetX-gDiffPIDOfDivPrev) * fConstDiffGainOfKd;
-  
-    LOG_F(pidAdjustValue);
-    float diff2Speed = fConstSpeedIOVoltMin + (pidAdjustValue *fConstSpeedIOVoltWidth) / gWidthTurnX;
-    LOG_F(diff2Speed);
+    gDiffPIDOfDivPrev = absDiffMagnetX;
+*/
     /*
     gDiffPIDOfSum += diff2Speed;    
     diff2Speed = diff2Speed * fConstDiffGainOfKp;
@@ -240,7 +238,16 @@ void makeSteeringExec(void) {
     gDiffPIDOfDivPrev = diff2Speed;
     */
 
+    auto pidAdjustValue = absDiffMagnetX * fConstDiffGainOfKp;
+  
+    LOG_F(pidAdjustValue);
+    float diff2Speed = fConstSpeedIOVoltMin + (pidAdjustValue *fConstSpeedIOVoltWidth) / gWidthTurnX;
     LOG_F(diff2Speed);
+    if(diff2Speed > fConstSpeedIOVoltWidth) {
+      diff2Speed = fConstSpeedIOVoltWidth;
+    }
+    LOG_F(diff2Speed);
+    
     gISpeedSteering = static_cast<uint8_t>(diff2Speed);
     LOG_I(gISpeedSteering);
     if(gISpeedSteering > iConstSpeedIOVoltMax) {
