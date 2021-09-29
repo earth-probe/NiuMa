@@ -196,11 +196,11 @@ void calcSteeringTargetWithX(void) {
   LOG_F(fTargetMagnetX);
 }
 
-static const float fConstDiffOfMangetXSteering = 0.025;
+static const float fConstDiffOfMangetXSteering = 0.05;
 
 static const float fConstDiffGainOfKp = 4.0;
 static const float fConstDiffGainOfKi = 0.05;
-static const float fConstDiffGainOfKd = 0.2;
+static const float fConstDiffGainOfKd = 16.0;
 static float gDiffPIDOfDivPrev = 0.0;
 
 void makeSteeringExec(void) {
@@ -223,28 +223,21 @@ void makeSteeringExec(void) {
     LOG_F(fConstSpeedIOVoltMax);
     LOG_F(gWidthTurnX);
 
-/*
-    gDiffPIDOfSum += absDiffMagnetX;
-    auto pidAdjustValue = absDiffMagnetX * fConstDiffGainOfKp;
-    pidAdjustValue += gDiffPIDOfSum * fConstDiffGainOfKi;
-    pidAdjustValue += (absDiffMagnetX-gDiffPIDOfDivPrev) * fConstDiffGainOfKd;
-    gDiffPIDOfDivPrev = absDiffMagnetX;
-*/
-    /*
-    gDiffPIDOfSum += diff2Speed;    
-    diff2Speed = diff2Speed * fConstDiffGainOfKp;
-    diff2Speed += gDiffPIDOfSum * fConstDiffGainOfKi;
-    diff2Speed += (diff2Speed-gDiffPIDOfDivPrev) * fConstDiffGainOfKd;
-    gDiffPIDOfDivPrev = diff2Speed;
-    */
 
     auto pidAdjustValue = absDiffMagnetX * fConstDiffGainOfKp;
+    gDiffPIDOfSum += absDiffMagnetX;    
+    LOG_F(gDiffPIDOfSum);
+
+    pidAdjustValue += gDiffPIDOfSum * fConstDiffGainOfKi;
+
+    pidAdjustValue += (absDiffMagnetX-gDiffPIDOfDivPrev) * fConstDiffGainOfKd;
+    gDiffPIDOfDivPrev = absDiffMagnetX;
   
     LOG_F(pidAdjustValue);
     float diff2Speed = fConstSpeedIOVoltMin + (pidAdjustValue *fConstSpeedIOVoltWidth) / gWidthTurnX;
     LOG_F(diff2Speed);
-    if(diff2Speed > fConstSpeedIOVoltWidth) {
-      diff2Speed = fConstSpeedIOVoltWidth;
+    if(diff2Speed > fConstSpeedIOVoltMax) {
+      diff2Speed = fConstSpeedIOVoltMax;
     }
     LOG_F(diff2Speed);
     
@@ -259,7 +252,11 @@ void makeSteeringExec(void) {
     LOG_I(gISpeedSteering); 
   } else {
     gISpeedSteering = 0;
-    gDiffPIDOfSum = 0;
+    static int counterOfSum = 0;
+    if(counterOfSum++ > 3) {
+      gDiffPIDOfSum = 0;
+      counterOfSum = 0;
+    }
     gDriveMotorExtend = HIGH;
     gDriveMotorReduce = HIGH;
   }
