@@ -77,6 +77,7 @@ volatile static float gRightMaxTurn = 0.0;
 
 volatile static float gLeftMaxTurnX = -0.209314;
 volatile static float gRightMaxTurnX = 0.357031;
+volatile static float gCenterTurnX = (gLeftMaxTurnX + gRightMaxTurnX) /2;
 volatile static float gWidthTurnX = std::abs(gRightMaxTurnX - gLeftMaxTurnX);
 
 volatile static float fTargetMagnetX = (gLeftMaxTurnX+gRightMaxTurnX)/2;
@@ -151,27 +152,18 @@ void execSteeringMotor(void) {
   }
 }
 
-#include <EEPROM.h>
+#include <Preferences.h>
+Preferences preferences;
 
-
-static const int iConstAddressOfLeftMaxTurn = 0;
-static const int iConstAddressOfCenterTurn = iConstAddressOfLeftMaxTurn + sizeof(float);
-static const int iConstAddressOfRightMaxTurn = iConstAddressOfCenterTurn + sizeof(float);
 
 
 void read_angle_table(void) {
-  float fLeftMaxTurn = 0.0;
-  EEPROM.get( iConstAddressOfLeftMaxTurn, fLeftMaxTurn);
-  gLeftMaxTurn = fLeftMaxTurn;
-  float fCenterTurn = 0.0;
-  EEPROM.get( iConstAddressOfCenterTurn, fCenterTurn);
-  gCenterTurn = fCenterTurn;
-  float fRightMaxTurn = 0.0;
-  EEPROM.get( iConstAddressOfRightMaxTurn, fRightMaxTurn);
-  gRightMaxTurn = fRightMaxTurn;
-  LOG_F(fLeftMaxTurn);
-  LOG_F(fCenterTurn);
-  LOG_F(fLeftMaxTurn);
+  preferences.begin("steering", false);
+  gLeftMaxTurnX = preferences.getFloat("gLeftMaxTurnX",gLeftMaxTurnX);
+  gRightMaxTurnX = preferences.getFloat("gRightMaxTurnX",gRightMaxTurnX);
+  gCenterTurnX = preferences.getFloat("gCenterTurnX",gCenterTurnX);
+  gWidthTurnX = preferences.getFloat("gWidthTurnX",gWidthTurnX);
+  
 }
 
 static const float iConstAngleLeftMax = 0.0 - 45.0;
@@ -455,9 +447,10 @@ void calcCalibrationReal(void) {
   LOG_I(xIndexMinRight);
   LOG_I(yIndexMinRight);
   LOG_I(zIndexMinRight);
-  EEPROM.put(iConstAddressOfLeftMaxTurn,minYLeft);
-  EEPROM.put(iConstAddressOfCenterTurn,maxY);
-  EEPROM.put(iConstAddressOfRightMaxTurn,minYRight);
+  preferences.putFloat("minYLeft",minYLeft);
+  preferences.putFloat("maxY",maxY);
+  preferences.putFloat("minYRight",minYRight);
+
   gLeftMaxTurn = minYLeft;
   gCenterTurn = maxY;
   gRightMaxTurn = minYRight;
@@ -466,4 +459,8 @@ void calcCalibrationReal(void) {
   gLeftMaxTurnX = std::min(minXLeft,minXRight);
   gRightMaxTurnX = maxX;
   gWidthTurnX = std::abs(gRightMaxTurnX - gLeftMaxTurnX);
+
+  preferences.putFloat("gLeftMaxTurnX",gLeftMaxTurnX);
+  preferences.putFloat("gRightMaxTurnX",gRightMaxTurnX);
+  preferences.putFloat("gWidthTurnX",gWidthTurnX);
 }
