@@ -2,12 +2,14 @@
 #include "debug.hpp"
 
 void setupDriveMotor(void);
+void readHallSpeed(void);
 void execDriveMotor(void);
 void DriveMotorTask( void * parameter) {
   int core = xPortGetCoreID();
   LOG_I(core);
   setupDriveMotor();
   for(;;) {//
+    readHallSpeed();
     execDriveMotor();
     delay(1);
   }
@@ -16,8 +18,15 @@ void DriveMotorTask( void * parameter) {
 static const uint8_t iConstPinSpeed = GPIO_NUM_27;
 static const uint8_t iConstPinDIR = GPIO_NUM_33;
 static const uint8_t iConstPinBrake = GPIO_NUM_32;
-static const uint8_t iConstPinLevelOE = GPIO_NUM_14;
 static const uint8_t iConstPinSpeedPWMChannel = 1;
+
+
+
+static const uint8_t iConstPinLevelOE = GPIO_NUM_15;
+
+static const uint8_t iConstPinHallA = GPIO_NUM_12;
+static const uint8_t iConstPinHallB = GPIO_NUM_13;
+static const uint8_t iConstPinHallC = GPIO_NUM_14;
 
 void setupDriveMotor(void) {
   pinMode(iConstPinSpeed, OUTPUT);
@@ -28,6 +37,10 @@ void setupDriveMotor(void) {
 
   pinMode(iConstPinLevelOE, OUTPUT);
   digitalWrite(iConstPinLevelOE,1);
+
+  pinMode(iConstPinHallA, INPUT_PULLDOWN);
+  pinMode(iConstPinHallB, INPUT_PULLDOWN);
+  pinMode(iConstPinHallC, INPUT_PULLDOWN);
 }
 
 
@@ -65,4 +78,8 @@ void execDriveMotor(void) {
   ledcWrite(iConstPinSpeedPWMChannel,gDriveMotorSpeed);
   digitalWrite(iConstPinDIR,gDriveMotorDir);
   digitalWrite(iConstPinBrake,gDriveMotorBrake);
+}
+
+void readHallSpeed(void) {
+  
 }
