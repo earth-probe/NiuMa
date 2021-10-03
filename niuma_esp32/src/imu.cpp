@@ -26,7 +26,7 @@ void setupIMU(void) {
   auto isGood = imu.begin(LSM9DS1_AG, LSM9DS1_M, Wire);
   LOG_I(isGood);
   imu.calibrateMag();
-  imu.setMagScale(2);
+  imu.setMagScale(8);
 }
 
 static const long constReadImuIntervalMS = 16;

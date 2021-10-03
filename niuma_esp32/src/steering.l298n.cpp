@@ -1,5 +1,10 @@
 #include <Arduino.h>
 #include "debug.hpp"
+
+//#define X_TURN
+#define Y_TURN
+
+
 void setupSteeringMotor(void);
 void execSteeringMotor(void);
 void execSteeringCalibration(void);
@@ -75,12 +80,22 @@ volatile static float gLeftMaxTurn = 0.0;
 volatile static float gCenterTurn = 0.0;
 volatile static float gRightMaxTurn = 0.0;
 
+#ifdef X_TURN
 volatile static float gLeftMaxTurnX = -0.209314;
 volatile static float gRightMaxTurnX = 0.357031;
 volatile static float gCenterTurnX = (gLeftMaxTurnX + gRightMaxTurnX) /2;
 volatile static float gWidthTurnX = std::abs(gRightMaxTurnX - gLeftMaxTurnX);
-
 volatile static float fTargetMagnetX = (gLeftMaxTurnX+gRightMaxTurnX)/2;
+#endif
+
+#ifdef Y_TURN
+volatile static float gLeftMaxTurnY = -0.209314;
+volatile static float gRightMaxTurnY = 0.357031;
+volatile static float gCenterTurnY = (gLeftMaxTurnY + gRightMaxTurnY) /2;
+volatile static float gWidthTurnY = std::abs(gRightMaxTurnY - gLeftMaxTurnY);
+volatile static float fTargetMagnetY = (gLeftMaxTurnY+gRightMaxTurnY)/2;
+#endif
+
 
 volatile static uint8_t gISpeedSteering = 0;
 
@@ -116,11 +131,24 @@ void refreshExternSteeringCommand(float angle,bool brake) {
   DUMP_F(gRightMaxTurn);
 
   LOG_F(fTargetTurnAngle);
+
+#ifdef X_TURN
   LOG_F(gLeftMaxTurnX);
   LOG_F(gRightMaxTurnX);
+#endif
+
+#ifdef Y_TURN
+  LOG_F(gLeftMaxTurnY);
+  LOG_F(gRightMaxTurnY);
+#endif
 
   calcSteeringTarget();
+#ifdef X_TURN
   LOG_F(fTargetMagnetX);
+#endif
+#ifdef Y_TURN
+  LOG_F(fTargetMagnetY);
+#endif
 
 }
 
@@ -146,9 +174,11 @@ void execSteeringMotor(void) {
     digitalWrite(iConstPinDirIN2,gDriveMotorReduce4Calibration);
     ledcWrite(iConstPinSteeringPWMChannel,iConstSpeedIOVoltMax);
   } else {
+    /*
     digitalWrite(iConstPinDirIN1,gDriveMotorExtend);
     digitalWrite(iConstPinDirIN2,gDriveMotorReduce);
     ledcWrite(iConstPinSteeringPWMChannel,gISpeedSteering);
+    */
   }
 }
 
@@ -159,10 +189,18 @@ Preferences preferences;
 
 void read_angle_table(void) {
   preferences.begin("steering", false);
+#ifdef X_TURN
   gLeftMaxTurnX = preferences.getFloat("gLeftMaxTurnX",gLeftMaxTurnX);
   gRightMaxTurnX = preferences.getFloat("gRightMaxTurnX",gRightMaxTurnX);
   gCenterTurnX = preferences.getFloat("gCenterTurnX",gCenterTurnX);
   gWidthTurnX = preferences.getFloat("gWidthTurnX",gWidthTurnX);
+#endif
+#ifdef Y_TURN
+  gLeftMaxTurnY = preferences.getFloat("gLeftMaxTurnY",gLeftMaxTurnY);
+  gRightMaxTurnY = preferences.getFloat("gRightMaxTurnY",gRightMaxTurnY);
+  gCenterTurnY = preferences.getFloat("gCenterTurnY",gCenterTurnY);
+  gWidthTurnY = preferences.getFloat("gWidthTurnY",gWidthTurnY);
+#endif
   
 }
 
