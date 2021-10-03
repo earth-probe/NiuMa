@@ -89,8 +89,8 @@ volatile static float fTargetMagnetX = (gLeftMaxTurnX+gRightMaxTurnX)/2;
 #endif
 
 #ifdef Y_TURN
-volatile static float gLeftMaxTurnY = -0.209314;
-volatile static float gRightMaxTurnY = 0.357031;
+volatile static float gLeftMaxTurnY = -1.744994;
+volatile static float gRightMaxTurnY = 1.708018;
 volatile static float gCenterTurnY = (gLeftMaxTurnY + gRightMaxTurnY) /2;
 volatile static float gWidthTurnY = std::abs(gRightMaxTurnY - gLeftMaxTurnY);
 volatile static float fTargetMagnetY = (gLeftMaxTurnY+gRightMaxTurnY)/2;
@@ -174,11 +174,9 @@ void execSteeringMotor(void) {
     digitalWrite(iConstPinDirIN2,gDriveMotorReduce4Calibration);
     ledcWrite(iConstPinSteeringPWMChannel,iConstSpeedIOVoltMax);
   } else {
-    /*
     digitalWrite(iConstPinDirIN1,gDriveMotorExtend);
     digitalWrite(iConstPinDirIN2,gDriveMotorReduce);
     ledcWrite(iConstPinSteeringPWMChannel,gISpeedSteering);
-    */
   }
 }
 
@@ -233,11 +231,11 @@ void calcSteeringTargetWithX(void) {
 
 }
 
-static const float fConstDiffOfMangetXSteering = 0.05;
+static const float fConstDiffOfMangetXSteering = 0.25;
 
-static const float fConstDiffGainOfKp = 4.0;
+static const float fConstDiffGainOfKp = 2.0;
 static const float fConstDiffGainOfKi = 0.05;
-static const float fConstDiffGainOfKd = 16.0;
+static const float fConstDiffGainOfKd = 8.0;
 static float gDiffPIDOfDivPrev = 0.0;
 
 void makeSteeringExec(void) {
@@ -262,18 +260,24 @@ void makeSteeringExec(void) {
       gDriveMotorExtend = 1;
       gDriveMotorReduce = 0;
     }
-    DUMP_F(absDiffMagnetX);
+
+    DUMP_F(absDiffMagnet);
     DUMP_F(fConstSpeedIOVoltMax);
+    #ifdef X_TURN
     DUMP_F(gWidthTurnX);
+    #endif
+    #ifdef Y_TURN
+    DUMP_F(gWidthTurnY);
+    #endif
 
 
     auto pidAdjustValue = absDiffMagnet * fConstDiffGainOfKp;
-    gDiffPIDOfSum += absDiffMagnet;    
+    gDiffPIDOfSum += absDiffMagnet;
     DUMP_F(gDiffPIDOfSum);
-
     pidAdjustValue += gDiffPIDOfSum * fConstDiffGainOfKi;
 
-    pidAdjustValue += (absDiffMagnet-gDiffPIDOfDivPrev) * fConstDiffGainOfKd;
+
+    pidAdjustValue += std::abs(absDiffMagnet-gDiffPIDOfDivPrev) * fConstDiffGainOfKd;
     gDiffPIDOfDivPrev = absDiffMagnet;
   
     DUMP_F(pidAdjustValue);
@@ -283,7 +287,7 @@ void makeSteeringExec(void) {
     #ifdef Y_TURN
     float diff2Speed = fConstSpeedIOVoltMin + (pidAdjustValue *fConstSpeedIOVoltWidth) / gWidthTurnY;
     #endif
-    DUMP_F(diff2Speed);
+    LOG_F(diff2Speed);
     if(diff2Speed > fConstSpeedIOVoltMax) {
       diff2Speed = fConstSpeedIOVoltMax;
     }
@@ -297,7 +301,7 @@ void makeSteeringExec(void) {
     if(gISpeedSteering < iConstSpeedIOVoltMin) {
       gISpeedSteering = iConstSpeedIOVoltMin;
     }
-    DUMP_I(gISpeedSteering); 
+    LOG_I(gISpeedSteering); 
   } else {
     gISpeedSteering = 0;
     static int counterOfSum = 0;
@@ -516,8 +520,11 @@ void calcCalibrationReal(void) {
   gLeftMaxTurnX = std::min(minXLeft,minXRight);
   gRightMaxTurnX = maxX;
   gWidthTurnX = std::abs(gRightMaxTurnX - gLeftMaxTurnX);
+  gCenterTurnX = (gLeftMaxTurnX + gRightMaxTurnX) /2.0;
+  fTargetMagnetX = gCenterTurnX;
   preferences.putFloat("gLeftMaxTurnX",gLeftMaxTurnX);
   preferences.putFloat("gRightMaxTurnX",gRightMaxTurnX);
+  preferences.putFloat("gCenterTurnX",gCenterTurnX);
   preferences.putFloat("gWidthTurnX",gWidthTurnX);
 #endif
 
@@ -525,8 +532,11 @@ void calcCalibrationReal(void) {
   gLeftMaxTurnY = std::min(minYLeft,minYRight);
   gRightMaxTurnY = maxY;
   gWidthTurnY = std::abs(gRightMaxTurnY - gLeftMaxTurnY);
+  gCenterTurnY = (gLeftMaxTurnY + gRightMaxTurnY) /2.0;
+  fTargetMagnetY = gCenterTurnY;
   preferences.putFloat("gLeftMaxTurnY",gLeftMaxTurnY);
   preferences.putFloat("gRightMaxTurnY",gRightMaxTurnY);
+  preferences.putFloat("gCenterTurnY",gCenterTurnY);
   preferences.putFloat("gWidthTurnY",gWidthTurnY);
 #endif
 
