@@ -2,14 +2,12 @@
 #include "debug.hpp"
 
 void setupDriveMotor(void);
-void readHallSpeed(void);
 void execDriveMotor(void);
 void DriveMotorTask( void * parameter) {
   int core = xPortGetCoreID();
   LOG_I(core);
   setupDriveMotor();
   for(;;) {//
-    readHallSpeed();
     execDriveMotor();
     delay(1);
   }
@@ -22,11 +20,6 @@ static const uint8_t iConstPinSpeedPWMChannel = 1;
 
 
 
-static const uint8_t iConstPinLevelOE = GPIO_NUM_15;
-
-static const uint8_t iConstPinHallA = GPIO_NUM_12;
-static const uint8_t iConstPinHallB = GPIO_NUM_13;
-static const uint8_t iConstPinHallC = GPIO_NUM_14;
 
 void setupDriveMotor(void) {
   pinMode(iConstPinSpeed, OUTPUT);
@@ -34,13 +27,6 @@ void setupDriveMotor(void) {
   ledcAttachPin(iConstPinSpeed, iConstPinSpeedPWMChannel);
   pinMode(iConstPinDIR, OUTPUT);
   pinMode(iConstPinBrake, OUTPUT);
-
-  pinMode(iConstPinLevelOE, OUTPUT);
-  digitalWrite(iConstPinLevelOE,1);
-
-  pinMode(iConstPinHallA, INPUT_PULLDOWN);
-  pinMode(iConstPinHallB, INPUT_PULLDOWN);
-  pinMode(iConstPinHallC, INPUT_PULLDOWN);
 }
 
 
@@ -80,6 +66,62 @@ void execDriveMotor(void) {
   digitalWrite(iConstPinBrake,gDriveMotorBrake);
 }
 
+
+
+void setupHallSpeed(void);
+void readHallSpeed(void);
+
+void HallSpeedTask( void * parameter) {
+  int core = xPortGetCoreID();
+  LOG_I(core);
+  setupHallSpeed();
+  for(;;) {//
+    readHallSpeed();
+    delay(1);
+  }
+}
+
+static const uint8_t iConstPinLevelOE = GPIO_NUM_15;
+static const uint8_t iConstPinHallA = GPIO_NUM_12;
+static const uint8_t iConstPinHallB = GPIO_NUM_13;
+static const uint8_t iConstPinHallC = GPIO_NUM_14;
+
+void setupHallSpeed(void) {
+  pinMode(iConstPinLevelOE, OUTPUT);
+  digitalWrite(iConstPinLevelOE,1);
+
+  pinMode(iConstPinHallA, INPUT_PULLDOWN);
+  pinMode(iConstPinHallB, INPUT_PULLDOWN);
+  pinMode(iConstPinHallC, INPUT_PULLDOWN);
+}
+
+volatile static int gHallValueA = 0;
+volatile static int gHallValueB = 0;
+volatile static int gHallValueC = 0;
+
 void readHallSpeed(void) {
-  
+  auto hallA = digitalRead(iConstPinHallA);
+  if(hallA) {
+    if(hallA != gHallValueA) {
+      LOG_I(hallA);
+    }
+  }
+  gHallValueA = hallA;
+
+  auto hallB = digitalRead(iConstPinHallB);
+  if(hallB) {
+    if(hallB != gHallValueB) {
+      LOG_I(hallB);
+    }
+  }
+  gHallValueB = hallB;
+
+  auto hallC = digitalRead(iConstPinHallC);
+  if(hallC) {
+    if(hallC != gHallValueC) {
+      LOG_I(hallC);
+    }
+  }
+  gHallValueC = hallC;
+
 }
