@@ -81,7 +81,7 @@ void HallSpeedTask( void * parameter) {
   for(;;) {//
     readHallSpeed();
     //calcHallSpeed();
-    delay(1);
+    delayMicroseconds(100);
   }
 }
 
@@ -155,45 +155,54 @@ void calcHallSpeed(void)
   LOG_I(gHallValueC);
 }
 
+static const unsigned long iConstHallReadInterval = 500;
 void readHallSpeed(void) {
   auto hallA = digitalRead(iConstPinHallA);
   auto hallB = digitalRead(iConstPinHallB);
   auto hallC = digitalRead(iConstPinHallC);
+  static auto prevHallUs = micros();
+  auto now = millis();
   if(hallA) {
     if(hallA != gHallValueA) {
-      LOG_I(hallA);
-      LOG_I(hallB);
-      LOG_I(hallC);
-      gHallValueCountA++;
-      LOG_I(gHallValueCountA);
-      LOG_I(gHallValueCountB);
-      LOG_I(gHallValueCountC);
+      //LOG_I(hallA);
+      //LOG_I(hallB);
+      //LOG_I(hallC);
+      if(now - prevHallUs > iConstHallReadInterval) {
+        gHallValueCountA++;
+        LOG_I(gHallValueCountA);
+        LOG_I(gHallValueCountB);
+        LOG_I(gHallValueCountC);
+      }
     }
   }
   gHallValueA = hallA;
 
   if(hallB) {
     if(hallB != gHallValueB) {
-      LOG_I(hallA);
-      LOG_I(hallB);
-      LOG_I(hallC);
-      gHallValueCountB++;
-      LOG_I(gHallValueCountA);
-      LOG_I(gHallValueCountB);
-      LOG_I(gHallValueCountC);
+      //LOG_I(hallA);
+      //LOG_I(hallB);
+      //LOG_I(hallC);
+      if(now - prevHallUs > iConstHallReadInterval) {
+        gHallValueCountB++;
+        LOG_I(gHallValueCountA);
+        LOG_I(gHallValueCountB);
+        LOG_I(gHallValueCountC);
+      }
     }
   }
   gHallValueB = hallB;
 
   if(hallC) {
     if(hallC != gHallValueC) {
-      LOG_I(hallA);
-      LOG_I(hallB);
-      LOG_I(hallC);
-      gHallValueCountC++;
-      LOG_I(gHallValueCountA);
-      LOG_I(gHallValueCountB);
-      LOG_I(gHallValueCountC);
+      //LOG_I(hallA);
+      //LOG_I(hallB);
+      //LOG_I(hallC);
+      if(now - prevHallUs > iConstHallReadInterval) {
+        gHallValueCountC++;
+        LOG_I(gHallValueCountA);
+        LOG_I(gHallValueCountB);
+        LOG_I(gHallValueCountC);
+      }
     }
   }
   gHallValueC = hallC;
