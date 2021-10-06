@@ -34,6 +34,7 @@ volatile uint8_t gDriveMotorSpeed = 0;
 volatile uint8_t gDriveMotorDir = 1;
 volatile uint8_t gDriveMotorBrake = 1;
 
+void resetSpeedCalc(void);
 static auto gMilliSecAtLastCommand = millis();
 void refreshExternDrivecommand(float speed,bool dir,bool brake) {
   LOG_F(speed);
@@ -52,6 +53,7 @@ void refreshExternDrivecommand(float speed,bool dir,bool brake) {
   } else {
     gDriveMotorDir = 0;
   }
+  resetSpeedCalc();
 }
 
 static const u_long iConstOneCommandInterval = 1000;
@@ -70,6 +72,7 @@ void execDriveMotor(void) {
 
 void setupHallSpeed(void);
 void readHallSpeed(void);
+void calcHallSpeed(void);
 
 void HallSpeedTask( void * parameter) {
   int core = xPortGetCoreID();
@@ -77,14 +80,19 @@ void HallSpeedTask( void * parameter) {
   setupHallSpeed();
   for(;;) {//
     readHallSpeed();
+    //calcHallSpeed();
     delay(1);
   }
 }
 
-static const uint8_t iConstPinLevelOE = GPIO_NUM_15;
+static const uint8_t iConstPinLevelOE = GPIO_NUM_16;
 static const uint8_t iConstPinHallA = GPIO_NUM_12;
 static const uint8_t iConstPinHallB = GPIO_NUM_13;
 static const uint8_t iConstPinHallC = GPIO_NUM_14;
+
+void raiseUpHallA(void);
+void raiseUpHallB(void);
+void raiseUpHallC(void);
 
 void setupHallSpeed(void) {
   pinMode(iConstPinLevelOE, OUTPUT);
@@ -93,33 +101,99 @@ void setupHallSpeed(void) {
   pinMode(iConstPinHallA, INPUT_PULLDOWN);
   pinMode(iConstPinHallB, INPUT_PULLDOWN);
   pinMode(iConstPinHallC, INPUT_PULLDOWN);
+
+/*
+  attachInterrupt(iConstPinHallA,raiseUpHallA,RISING);
+  attachInterrupt(iConstPinHallB,raiseUpHallB,RISING);
+  attachInterrupt(iConstPinHallC,raiseUpHallC,RISING);
+*/
 }
 
-volatile static int gHallValueA = 0;
-volatile static int gHallValueB = 0;
-volatile static int gHallValueC = 0;
+#include <atomic>
+volatile static std::atomic_int gHallValueA(0);
+volatile static std::atomic_int gHallValueB(0);
+volatile static std::atomic_int gHallValueC(0);
+
+volatile static std::atomic_int gHallValueCountA(0);
+volatile static std::atomic_int gHallValueCountB(0);
+volatile static std::atomic_int gHallValueCountC(0);
+
+
+/*
+volatile static int gHallValueA(0);
+volatile static int gHallValueB(0);
+volatile static int gHallValueC(0);
+*/
+
+void raiseUpHallA(void)
+{
+  gHallValueA++;
+}
+void raiseUpHallB(void)
+{
+  gHallValueB++;
+}
+void raiseUpHallC(void)
+{
+  gHallValueC++;
+}
+
+void resetSpeedCalc(void)
+{
+  //gHallValueA = 0;
+  //gHallValueB = 0;
+  //gHallValueC = 0;
+  gHallValueCountA = 0;
+  gHallValueCountB = 0;
+  gHallValueCountC = 0;
+}
+
+void calcHallSpeed(void)
+{
+  LOG_I(gHallValueA);
+  LOG_I(gHallValueB);
+  LOG_I(gHallValueC);
+}
 
 void readHallSpeed(void) {
   auto hallA = digitalRead(iConstPinHallA);
+  auto hallB = digitalRead(iConstPinHallB);
+  auto hallC = digitalRead(iConstPinHallC);
   if(hallA) {
     if(hallA != gHallValueA) {
       LOG_I(hallA);
+      LOG_I(hallB);
+      LOG_I(hallC);
+      gHallValueCountA++;
+      LOG_I(gHallValueCountA);
+      LOG_I(gHallValueCountB);
+      LOG_I(gHallValueCountC);
     }
   }
   gHallValueA = hallA;
 
-  auto hallB = digitalRead(iConstPinHallB);
   if(hallB) {
     if(hallB != gHallValueB) {
+      LOG_I(hallA);
       LOG_I(hallB);
+      LOG_I(hallC);
+      gHallValueCountB++;
+      LOG_I(gHallValueCountA);
+      LOG_I(gHallValueCountB);
+      LOG_I(gHallValueCountC);
     }
   }
   gHallValueB = hallB;
 
-  auto hallC = digitalRead(iConstPinHallC);
   if(hallC) {
     if(hallC != gHallValueC) {
+      LOG_I(hallA);
+      LOG_I(hallB);
       LOG_I(hallC);
+      gHallValueCountC++;
+      LOG_I(gHallValueCountA);
+      LOG_I(gHallValueCountB);
+      LOG_I(gHallValueCountC);
     }
   }
   gHallValueC = hallC;

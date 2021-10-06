@@ -252,7 +252,7 @@ void makeSteeringExec(void) {
   const float absDiffMagnet = std::abs(diffMagnet);
   DUMP_F(diffMagnet);
   if(absDiffMagnet > fConstDiffOfMangetXSteering ) {
-    LOG_F(diffMagnet);
+    DUMP_F(diffMagnet);
     if(diffMagnet < 0.0) {
       gDriveMotorExtend = 0;
       gDriveMotorReduce = 1;
@@ -287,7 +287,7 @@ void makeSteeringExec(void) {
     #ifdef Y_TURN
     float diff2Speed = fConstSpeedIOVoltMin + (pidAdjustValue *fConstSpeedIOVoltWidth) / gWidthTurnY;
     #endif
-    LOG_F(diff2Speed);
+    DUMP_F(diff2Speed);
     if(diff2Speed > fConstSpeedIOVoltMax) {
       diff2Speed = fConstSpeedIOVoltMax;
     }
@@ -301,7 +301,7 @@ void makeSteeringExec(void) {
     if(gISpeedSteering < iConstSpeedIOVoltMin) {
       gISpeedSteering = iConstSpeedIOVoltMin;
     }
-    LOG_I(gISpeedSteering); 
+    DUMP_I(gISpeedSteering); 
   } else {
     gISpeedSteering = 0;
     static int counterOfSum = 0;
