@@ -19,4 +19,4 @@ docker run \
   --workdir="${PWD}"\
   --net=host \
   --cpuset-cpus=${cpustart}-${cpusend} \
-	-it ros:foxy /bin/bash 
+	-it niuma_moveit2 /bin/bash 
