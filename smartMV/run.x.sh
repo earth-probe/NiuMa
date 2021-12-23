@@ -19,4 +19,4 @@ docker run \
   --workdir="${PWD}"\
   --net=host \
   --cpuset-cpus=${cpustart}-${cpusend} \
-	ros:foxy /bin/bash 
+	-it ros:foxy /bin/bash 
