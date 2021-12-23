@@ -11,12 +11,12 @@ docker run \
   --group-add dialout \
   --group-add audio \
   --group-add video \
-  -v $(pwd):$(pwd) \
+  -v ${PWD}:${PWD} \
   -v /etc/passwd:/etc/passwd \
   -v /etc/group:/etc/group \
-  -v $(HOME):$(HOME) \
+  -v ${HOME}:${HOME} \
   --privileged \
-  --workdir="$(pwd)"\
+  --workdir="${PWD}"\
   --net=host \
   --cpuset-cpus=${cpustart}-${cpusend} \
 	ros:foxy /bin/bash 
