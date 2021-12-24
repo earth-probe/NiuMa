@@ -19,4 +19,4 @@ docker run \
   --workdir="${PWD}"\
   --net=host \
   --cpuset-cpus=${cpustart}-${cpusend} \
-  -it moveit/moveit2:foxy-release /bin/bash 
+  -it niuma_navi2 /bin/bash 
