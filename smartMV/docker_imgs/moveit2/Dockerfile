@@ -8,3 +8,4 @@ RUN apt-get -y update && apt-get install -y \
 RUN git clone https://github.com/ros-planning/moveit2_tutorials.git -b foxy
 RUN vcs import < moveit2_tutorials/moveit2_tutorials.repos
 RUN rosdep install -r --from-paths . --ignore-src --rosdistro $ROS_DISTRO -y
+RUN cd ./moveit2_tutorials colcon build --mixin release
