@@ -19,4 +19,4 @@ docker run \
   --workdir="${PWD}"\
   --net=host \
   --cpuset-cpus=${cpustart}-${cpusend} \
-  -it docker pull moveit/moveit2 /bin/bash 
+  -it moveit/moveit2 /bin/bash 
