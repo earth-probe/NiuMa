@@ -7,10 +7,3 @@ RUN apt-get -y update && apt-get install -y \
     ros-${ROS_DISTRO}-slam-toolbox \
     ros-${ROS_DISTRO}-turtlebot3* && \
     rm -rf /var/lib/apt/lists/*
-
-RUN apt-get -y update && apt-get install -y \
-    gazebo11 \
-    ros-${ROS_DISTRO}-cartographer \
-    ros-${ROS_DISTRO}-cartographer-ros && \
-    rm -rf /var/lib/apt/lists/*
-
