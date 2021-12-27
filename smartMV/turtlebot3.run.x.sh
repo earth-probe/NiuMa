@@ -19,4 +19,4 @@ docker run \
   --workdir="${PWD}"\
   --net=host \
   --cpuset-cpus=${cpustart}-${cpusend} \
-  -it niuma_navi2 /bin/bash 
+  -it niuma_navi2 ros2 launch  turtlebot3_gazebo turtlebot3_world.launch.py
