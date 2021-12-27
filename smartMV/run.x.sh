@@ -14,6 +14,7 @@ docker run \
   -v ${PWD}:${PWD} \
   -v /etc/passwd:/etc/passwd \
   -v /etc/group:/etc/group \
+  -v /tmp:/tmp \
   -v ${HOME}:${HOME} \
   --privileged \
   --workdir="${PWD}"\
