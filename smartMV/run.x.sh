@@ -9,6 +9,7 @@ echo ${cpusend}
 mkdir -p /tmp/niuma_ros
 docker run \
   -u $(id -u ${USER}):$(id -g ${USER}) \
+  -e "DISPLAY=$DISPLAY" \
   --group-add dialout \
   --group-add audio \
   --group-add video \
