@@ -4,13 +4,18 @@ Adafruit_INA219 ina219;
 
 int TempAnalogPin = 2;
 
+int FETSWITCHPin = 9;
 void setup() {
+  pinMode(FETSWITCHPin,OUTPUT);
   // put your setup code here, to run once:
   Serial.begin(115200);
   while(Serial == false) {
 
   }
   Serial.println("start ...");
+  Serial.print(__DATE__);
+  Serial.print(" ");
+  Serial.println(__TIME__);
   if (!ina219.begin()) {
     Serial.println("Failed to find INA219 chip");
   } else {
@@ -48,10 +53,26 @@ void setup() {
   Serial.println(">");\
 }
 
+void readData(void);
 
+static const int32_t iConstOnOffCounterLoop = 40;
+static const int32_t iConstOnOffCounterSwith = iConstOnOffCounterLoop/2;
 void loop() {
   //Serial.println("loop");
-  delay(500);
+  delay(100);
+
+  static int32_t counterSkip = 0;
+  if(counterSkip% iConstOnOffCounterLoop > iConstOnOffCounterSwith/2) {
+    //LOG_I(counterSkip);
+    digitalWrite(FETSWITCHPin,LOW);
+  } else {
+    //LOG_I(counterSkip);
+    digitalWrite(FETSWITCHPin,HIGH);
+  }
+  counterSkip++;
+  readData();
+}
+void readData(void){
   bool isGood = ina219.success();
   if(isGood == false) {
     return;
