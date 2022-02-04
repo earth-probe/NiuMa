@@ -30,7 +30,7 @@ void setup() {
   snprintf(buff,sizeof(buff),"[log] %s::%d:",__func__,__LINE__);\
   Serial.print(buff);\
   Serial.print(#x);\
-  Serial.print(":=");\
+  Serial.print(":=<");\
   Serial.print(x);\
   Serial.println(">");\
 }
@@ -39,7 +39,7 @@ void setup() {
   snprintf(buff,sizeof(buff),"[log] %s::%d:",__func__,__LINE__);\
   Serial.print(buff);\
   Serial.print(#x);\
-  Serial.print(":=");\
+  Serial.print(":=<");\
   Serial.print(x);\
   Serial.println(">");\
 }
@@ -48,14 +48,14 @@ void setup() {
   snprintf(buff,sizeof(buff),"[log] %s::%d:",__func__,__LINE__);\
   Serial.print(buff);\
   Serial.print(#x);\
-  Serial.print(":=");\
+  Serial.print(":=<");\
   Serial.print(x);\
   Serial.println(">");\
 }
 
 void readData(void);
 
-static const int32_t iConstOnOffCounterLoop = 40;
+static const int32_t iConstOnOffCounterLoop = 100;
 static const int32_t iConstOnOffCounterSwith = iConstOnOffCounterLoop/2;
 void loop() {
   //Serial.println("loop");
@@ -81,7 +81,7 @@ void readData(void){
   float busMiliVoltage = 1000.0f * ina219.getBusVoltage_V();
   float loadMiliVoltage = busMiliVoltage + shuntMiliVoltage;
   float current_mA = ina219.getCurrent_mA();
-  float power_mW = ina219.getPower_mW();
+  float power_mW = abs(ina219.getPower_mW());
   if(power_mW > 0) {
     LOG_F(shuntMiliVoltage);
     LOG_F(busMiliVoltage);
@@ -94,5 +94,7 @@ void readData(void){
     //LOG_F(temeratureVoltage);
     float temerature = map(temeratureVoltage, 100, 1750, -40, 125);
     LOG_F(temerature);
+  } else {
+    LOG_F(power_mW);
   }
 }
