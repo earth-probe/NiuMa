@@ -69,7 +69,7 @@ void loop() {
   delay(100);
 
   static int32_t counterSkip = 0;
-  if(counterSkip% iConstOnOffCounterLoop > iConstOnOffCounterSwith/2) {
+  if(counterSkip% iConstOnOffCounterLoop > iConstOnOffCounterSwith) {
     //LOG_I(counterSkip);
     digitalWrite(FETSWITCHPin,LOW);
   } else {
