@@ -24,6 +24,7 @@ void setup() {
   //ina219.setCalibration_32V_1A();
 }
 
+#if 0
 
 #define LOG_I(x) { \
   char buff[256];\
@@ -52,6 +53,12 @@ void setup() {
   Serial.print(x);\
   Serial.println(">");\
 }
+#else
+#define LOG_I(x) 
+#define LOG_F(x) 
+#define LOG_S(x) 
+#endif
+
 
 void readData(void);
 
@@ -82,19 +89,26 @@ void readData(void){
   float loadMiliVoltage = busMiliVoltage + shuntMiliVoltage;
   float current_mA = ina219.getCurrent_mA();
   float power_mW = abs(ina219.getPower_mW());
+  int temperatureRaw = analogRead(TempAnalogPin);
+  //LOG_I(temperatureRaw);
+  float temperatureVoltage = map(temperatureRaw, 0, 1023, 0, 5000);
+  //LOG_F(temeratureVoltage);
+  float temperature = map(temperatureVoltage, 100, 1750, -40, 125);
   if(power_mW > 0) {
     LOG_F(shuntMiliVoltage);
     LOG_F(busMiliVoltage);
     LOG_F(loadMiliVoltage);
     LOG_F(current_mA);
     LOG_F(power_mW);
-    int temperatureRaw = analogRead(TempAnalogPin);
-    //LOG_I(temperatureRaw);
-    float temeratureVoltage = map(temperatureRaw, 0, 1023, 0, 5000);
-    //LOG_F(temeratureVoltage);
-    float temerature = map(temeratureVoltage, 100, 1750, -40, 125);
-    LOG_F(temerature);
+    LOG_F(temperature);
   } else {
     LOG_F(power_mW);
   }
+  Serial.print("curmA,");
+  Serial.print(current_mA);
+  Serial.print(",VolmV,");
+  Serial.print(busMiliVoltage);
+  Serial.print(",temp");
+  Serial.print(temperature);
+  Serial.println("");
 }
