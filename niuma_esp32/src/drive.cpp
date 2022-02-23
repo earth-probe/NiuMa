@@ -87,8 +87,8 @@ void HallSpeedTask( void * parameter) {
 
 static const uint8_t iConstPinLevelOE = GPIO_NUM_16;
 static const uint8_t iConstPinHallA = GPIO_NUM_12;
-static const uint8_t iConstPinHallB = GPIO_NUM_13;
 static const uint8_t iConstPinHallC = GPIO_NUM_14;
+static const uint8_t iConstPinHallB = GPIO_NUM_15;
 
 void raiseUpHallA(void);
 void raiseUpHallB(void);
