@@ -86,7 +86,6 @@ void HallSpeedTask( void * parameter) {
   }
 }
 
-static const uint8_t iConstPinLevelOE = GPIO_NUM_16;
 static const uint8_t iConstPinHallA = GPIO_NUM_13;
 static const uint8_t iConstPinHallC = GPIO_NUM_14;
 static const uint8_t iConstPinHallB = GPIO_NUM_15;
@@ -96,9 +95,6 @@ void raiseUpHallB(void);
 void raiseUpHallC(void);
 
 void setupHallSpeed(void) {
-  pinMode(iConstPinLevelOE, OUTPUT);
-  digitalWrite(iConstPinLevelOE,1);
-
   pinMode(iConstPinHallA, INPUT_PULLDOWN);
   pinMode(iConstPinHallB, INPUT_PULLDOWN);
   pinMode(iConstPinHallC, INPUT_PULLDOWN);
