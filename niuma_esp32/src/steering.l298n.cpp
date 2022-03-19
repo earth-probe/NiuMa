@@ -1,8 +1,8 @@
 #include <Arduino.h>
 #include "debug.hpp"
 
-//#define X_TURN
-#define Y_TURN
+#define X_TURN
+//#define Y_TURN
 
 
 void setupSteeringMotor(void);
@@ -81,8 +81,8 @@ volatile static float gCenterTurn = 0.0;
 volatile static float gRightMaxTurn = 0.0;
 
 #ifdef X_TURN
-volatile static float gLeftMaxTurnX = -0.209314;
-volatile static float gRightMaxTurnX = 0.357031;
+volatile static float gLeftMaxTurnX = -0.001775;
+volatile static float gRightMaxTurnX = -0.411256;
 volatile static float gCenterTurnX = (gLeftMaxTurnX + gRightMaxTurnX) /2;
 volatile static float gWidthTurnX = std::abs(gRightMaxTurnX - gLeftMaxTurnX);
 volatile static float fTargetMagnetX = (gLeftMaxTurnX+gRightMaxTurnX)/2;
@@ -159,7 +159,7 @@ volatile bool gIsRunCalibration = false;
 uint8_t gDriveMotorExtend4Calibration = HIGH;
 uint8_t gDriveMotorReduce4Calibration = HIGH;
 
-static const float fConstSpeedIOVoltMin = 80.0;
+static const float fConstSpeedIOVoltMin = 40.0;
 static const uint8_t iConstSpeedIOVoltMin = static_cast<uint8_t>(fConstSpeedIOVoltMin);
 static const float fConstSpeedIOVoltMax = 255.0;
 static const float fConstSpeedIOVoltWidth = fConstSpeedIOVoltMax -fConstSpeedIOVoltMin;
@@ -231,9 +231,9 @@ void calcSteeringTargetWithX(void) {
 
 }
 
-static const float fConstDiffOfMangetXSteering = 0.25;
+static const float fConstDiffOfMangetSteering = 0.15;
 
-static const float fConstDiffGainOfKp = 2.0;
+static const float fConstDiffGainOfKp = 1.0;
 static const float fConstDiffGainOfKi = 0.05;
 static const float fConstDiffGainOfKd = 8.0;
 static float gDiffPIDOfDivPrev = 0.0;
@@ -243,22 +243,22 @@ void makeSteeringExec(void) {
     return;
   }
   #ifdef X_TURN
-  const float diffMagnetX =  fTargetMagnetX - magnet4SteeringX;
+  const float diffMagnet =  fTargetMagnetX - magnet4SteeringX;
   #endif
   #ifdef Y_TURN
   const float diffMagnet =  fTargetMagnetY - magnet4SteeringY;
   #endif
-
   const float absDiffMagnet = std::abs(diffMagnet);
   DUMP_F(diffMagnet);
-  if(absDiffMagnet > fConstDiffOfMangetXSteering ) {
+  DUMP_F(absDiffMagnet);
+  if(absDiffMagnet > fConstDiffOfMangetSteering ) {
     DUMP_F(diffMagnet);
     if(diffMagnet < 0.0) {
-      gDriveMotorExtend = 0;
-      gDriveMotorReduce = 1;
-    } else {
       gDriveMotorExtend = 1;
       gDriveMotorReduce = 0;
+    } else {
+      gDriveMotorExtend = 0;
+      gDriveMotorReduce = 1;
     }
 
     DUMP_F(absDiffMagnet);
@@ -323,7 +323,7 @@ std::vector<std::tuple<float,float,float>> gStoreMagnet;
 
 static const long constSteeringCalibrationStage1 = 2000;
 static const long constSteeringCalibrationFinnish = constSteeringCalibrationStage1 + 3000;
-static const long constSteeringCalibrationCalc = constSteeringCalibrationFinnish + 100;
+static const long constSteeringCalibrationCalc = constSteeringCalibrationFinnish + 300;
 static auto gMilliSecStartCalibration = millis()  - constSteeringCalibrationCalc;
 
 void refreshExternSteeringCalibration(bool run) {
@@ -346,12 +346,13 @@ void execSteeringCalibration(void) {
   gIsRunCalibration = true;
   bool storeManget = false;
   if( escaped_ms < constSteeringCalibrationStage1) {
+    storeManget = true;
     gDriveMotorExtend4Calibration = LOW;
     gDriveMotorReduce4Calibration = HIGH;
   } else if(escaped_ms < constSteeringCalibrationFinnish) {
+    storeManget = true;
     gDriveMotorExtend4Calibration = HIGH;
     gDriveMotorReduce4Calibration = LOW;
-    storeManget = true;
   } else {
 
   }
@@ -403,6 +404,9 @@ void calcCalibrationReal(void) {
   float maxX = std::get<0>(*first);
   float maxY = std::get<1>(*first);
   float maxZ = std::get<2>(*first);
+  float minX = std::get<0>(*first);
+  float minY = std::get<1>(*first);
+  float minZ = std::get<2>(*first);
   int xIndexMax = 0;
   int yIndexMax = 0;
   int zIndexMax = 0;
@@ -413,21 +417,33 @@ void calcCalibrationReal(void) {
       maxX = x;
       xIndexMax = indexOfAll;
     }
+    if(x < minX) {
+      minX = x;
+    }
     auto y = std::get<1>(magenetIt);
     if(y > maxY) {
       maxY = y;
       yIndexMax = indexOfAll;
+    }
+    if(y < minY) {
+      minY = y;
     }
     auto z = std::get<2>(magenetIt);
     if(z > maxZ) {
       maxZ = z;
       zIndexMax = indexOfAll;
     }
+    if(z < minZ) {
+      minZ = z;
+    }
     indexOfAll ++;
   }
   LOG_F(maxX);
   LOG_F(maxY);
   LOG_F(maxZ);
+  LOG_F(minX);
+  LOG_F(minY);
+  LOG_F(minZ);
   LOG_I(xIndexMax);
   LOG_I(yIndexMax);
   LOG_I(zIndexMax);
