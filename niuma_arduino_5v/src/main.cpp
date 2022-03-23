@@ -77,6 +77,13 @@ void setup() {
   pinMode(MOTER_IN1_STREERING, OUTPUT);
   pinMode(MOTER_IN2_STREERING, OUTPUT);
 
+
+  analogWrite(MOTER_SPD_WHEEL, 0);
+  analogWrite(MOTER_SPD_STREERING, 0);
+
+  digitalWrite(MOTER_IN1_STREERING,HIGH);
+  digitalWrite(MOTER_IN2_STREERING,HIGH);
+
   Serial.begin(115200);
 }
 

@@ -1,5 +1,6 @@
 #include <Arduino.h>
 #include "debug.hpp"
+#include <ArduinoJson.h>
 
 void setupDriveMotor(void);
 void execDriveMotor(void);
@@ -9,24 +10,18 @@ void DriveMotorTask( void * parameter) {
   setupDriveMotor();
   for(;;) {//
     execDriveMotor();
-    delay(1);
+    delay(10);
   }
 }
 
-static const uint8_t iConstPinSpeed = GPIO_NUM_27;
-static const uint8_t iConstPinBrake = GPIO_NUM_32;
-static const uint8_t iConstPinDIR = GPIO_NUM_33;
-static const uint8_t iConstPinSpeedPWMChannel = 1;
-
-
-
+static StaticJsonDocument<32> docPin7;
+static StaticJsonDocument<32> docPin8;
+static StaticJsonDocument<32> docPin9;
 
 void setupDriveMotor(void) {
-  pinMode(iConstPinSpeed, OUTPUT);
-  ledcSetup(iConstPinSpeedPWMChannel,1000,8);
-  ledcAttachPin(iConstPinSpeed, iConstPinSpeedPWMChannel);
-  pinMode(iConstPinDIR, OUTPUT);
-  pinMode(iConstPinBrake, OUTPUT);
+  docPin7["d"] = 7;
+  docPin8["d"] = 8;
+  docPin9["p"] = 9;
 }
 
 
@@ -63,9 +58,37 @@ void execDriveMotor(void) {
     gDriveMotorSpeed = 0;
     gDriveMotorBrake = 1;
   }
-  ledcWrite(iConstPinSpeedPWMChannel,gDriveMotorSpeed);
-  digitalWrite(iConstPinDIR,gDriveMotorDir);
-  digitalWrite(iConstPinBrake,gDriveMotorBrake);
+
+  {
+    docPin7["v"] = gDriveMotorDir;
+    serializeJson(docPin7, Serial2);
+    Serial2.println("");
+
+    //serializeJson(docPin7, Serial);
+    //Serial.println("");
+
+  }
+
+  {
+    docPin8["v"] = gDriveMotorBrake;
+    serializeJson(docPin8, Serial2);
+    Serial2.println("");
+
+    //serializeJson(docPin8, Serial);
+    //Serial.println("");
+
+  }
+
+  {
+    docPin9["v"] = gDriveMotorSpeed;
+    serializeJson(docPin9, Serial2);
+    Serial2.println("");
+
+    //serializeJson(docPin9, Serial);
+    //Serial.println("");
+
+  }
+
 }
 
 
