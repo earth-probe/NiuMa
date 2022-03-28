@@ -1,6 +1,5 @@
 #include <Arduino.h>
 #include "debug.hpp"
-#include <ArduinoJson.h>
 
 #define X_TURN
 //#define Y_TURN
@@ -50,9 +49,24 @@ extern volatile float magnet4SteeringZ;
 
 
 
+static const uint8_t iConstPinPWNEna = GPIO_NUM_17; 
+static const uint8_t iConstPinDirIN1 = GPIO_NUM_18;
+static const uint8_t iConstPinDirIN2 = GPIO_NUM_19;
 
 
+static const uint8_t iConstPinSteeringPWMChannel = 2;
 
+void setupSteeringMotor(void) {
+  pinMode(iConstPinPWNEna, OUTPUT);
+  ledcSetup(iConstPinSteeringPWMChannel,1000,8);
+  ledcAttachPin(iConstPinPWNEna, iConstPinSteeringPWMChannel);
+
+  pinMode(iConstPinDirIN1, OUTPUT);
+  pinMode(iConstPinDirIN2, OUTPUT);
+  digitalWrite(iConstPinDirIN1,HIGH);
+  digitalWrite(iConstPinDirIN2,HIGH);
+
+}
 
 static auto gMilliSecAtLastCommand = millis();
 volatile uint8_t gDriveMotorExtend = 1;
@@ -152,67 +166,17 @@ static const float fConstSpeedIOVoltWidth = fConstSpeedIOVoltMax -fConstSpeedIOV
 static const uint8_t iConstSpeedIOVoltMax = static_cast<uint8_t>(fConstSpeedIOVoltMax);
 static volatile bool gIsCalcCalibration = false;
 
-static StaticJsonDocument<32> docPin12;
-static StaticJsonDocument<32> docPin11;
-static StaticJsonDocument<32> docPin10;
-void setupSteeringMotor(void) {
-  docPin12["d"] = 12;
-  docPin11["d"] = 11;
-  docPin10["p"] = 10;
-}
-
-
 void execSteeringMotor(void) {
   DUMP_I(gDriveMotorExtend);  
   DUMP_I(gDriveMotorReduce);
   if(gIsRunCalibration) {
-    //digitalWrite(iConstPinDirIN1,gDriveMotorExtend4Calibration);
-    //digitalWrite(iConstPinDirIN2,gDriveMotorReduce4Calibration);
-    //ledcWrite(iConstPinSteeringPWMChannel,iConstSpeedIOVoltMax);
-    {
-      docPin12["v"] = gDriveMotorExtend4Calibration;
-      serializeJson(docPin12, Serial2);
-      Serial2.println("");
-
-      //serializeJson(docPin12, Serial);
-      //Serial.println("");
-
-    }
-
-
-    {
-      docPin11["v"] = gDriveMotorReduce4Calibration;
-      serializeJson(docPin11, Serial2);
-      Serial2.println("");
-
-      //serializeJson(docPin11, Serial);
-      //Serial.println("");
-
-    }
-
-    {
-      docPin10["v"] = iConstSpeedIOVoltMax;
-      serializeJson(docPin10, Serial2);
-      Serial2.println("");
-      //serializeJson(docPin10, Serial);
-      //Serial.println("");
-    }
-
+    digitalWrite(iConstPinDirIN1,gDriveMotorExtend4Calibration);
+    digitalWrite(iConstPinDirIN2,gDriveMotorReduce4Calibration);
+    ledcWrite(iConstPinSteeringPWMChannel,iConstSpeedIOVoltMax);
   } else {
-    //digitalWrite(iConstPinDirIN1,gDriveMotorExtend);
-    //digitalWrite(iConstPinDirIN2,gDriveMotorReduce);
-    //ledcWrite(iConstPinSteeringPWMChannel,gISpeedSteering);
-    {
-      StaticJsonDocument<32> doc;
-      doc["p"] = 10;
-      doc["v"] = gISpeedSteering;
-      serializeJson(doc, Serial2);
-      Serial2.println("");
-      //serializeJson(doc, Serial);
-      //Serial.println("");
-    }
-
-
+    digitalWrite(iConstPinDirIN1,gDriveMotorExtend);
+    digitalWrite(iConstPinDirIN2,gDriveMotorReduce);
+    ledcWrite(iConstPinSteeringPWMChannel,gISpeedSteering);
   }
 }
 
