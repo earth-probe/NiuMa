@@ -22,6 +22,7 @@ LSM9DS1 imu;
 #define LSM9DS1_M 0x1C
 #define LSM9DS1_AG 0x6A 
 void setupIMU(void) {
+  Wire.setPins(GPIO_NUM_21,GPIO_NUM_22);
   Wire.begin();
   auto isGood = imu.begin(LSM9DS1_AG, LSM9DS1_M, Wire);
   LOG_I(isGood);
