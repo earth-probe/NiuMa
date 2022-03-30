@@ -21,14 +21,19 @@ void CompassTask( void * parameter) {
 #include <Wire.h>
 
 void setupCompass(void) {
-  Wire.setPins(GPIO_NUM_21,GPIO_NUM_22);
-  Wire.begin();
+  TwoWire selfWire(1);
+  auto goodWire = selfWire.begin(GPIO_NUM_21,GPIO_NUM_22,400000);
+  LOG_I(goodWire);
+  /*
+  auto goodWire = Wire.begin(GPIO_NUM_21,GPIO_NUM_22,400000);
+  LOG_I(goodWire);
   compass.initCompass();
+  auto id = compass.getCompass();
+  LOG_I(id);
+  */
 }
 
 static const long constReadImuIntervalMS = 16;
-static const float magnetFilterFatorA = 0.2; 
-static const float magnetFilterFatorB = 1.0 - magnetFilterFatorA; 
 
 
 void readCompass(void) {
@@ -38,10 +43,10 @@ void readCompass(void) {
     return;
   }
   previousMillis = nowMS;
-  auto magnet = compass.readRawAxis();
-  LOG_I(magnet.XAxis);
-  LOG_I(magnet.YAxis);
-  LOG_I(magnet.ZAxis);
+  //auto magnet = compass.readRawAxis();
+  //LOG_I(magnet.XAxis);
+  //LOG_I(magnet.YAxis);
+  //LOG_I(magnet.ZAxis);
   //auto magnet = compass.readScaledAxis();
 }
 
