@@ -1,7 +1,11 @@
 #include <Arduino.h>
 #include "debug.hpp"
+#include <HMC5883L.h>
 void setupCompass(void);
 void readCompass(void);
+
+HMC5883L compass;
+
 
 
 void CompassTask( void * parameter) {
@@ -19,6 +23,7 @@ void CompassTask( void * parameter) {
 void setupCompass(void) {
   Wire.setPins(GPIO_NUM_21,GPIO_NUM_22);
   Wire.begin();
+  compass.initCompass();
 }
 
 static const long constReadImuIntervalMS = 16;
@@ -33,5 +38,10 @@ void readCompass(void) {
     return;
   }
   previousMillis = nowMS;
+  auto magnet = compass.readRawAxis();
+  LOG_I(magnet.XAxis);
+  LOG_I(magnet.YAxis);
+  LOG_I(magnet.ZAxis);
+  //auto magnet = compass.readScaledAxis();
 }
 
