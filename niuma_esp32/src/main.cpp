@@ -30,11 +30,11 @@ void setup() {
   xMutex = xSemaphoreCreateMutex();
   xSemaphoreGive(xMutex);
   xTaskCreatePinnedToCore(BLETask, "BLETask", 10000, nullptr, 1, nullptr,  1); 
-  //xTaskCreatePinnedToCore(IMUTask, "IMUTask", 10000, nullptr, 1, nullptr,  1); 
-  //xTaskCreatePinnedToCore(CompassTask, "CompassTask", 10000, nullptr, 1, nullptr,  1); 
-  xTaskCreatePinnedToCore(SteeringMotorTask_l298n, "SteeringMotorTask", 10000, nullptr, 1, nullptr,  0); 
-  xTaskCreatePinnedToCore(DriveMotorTask, "DriveMotorTask", 10000, nullptr, 1, nullptr,  0); 
-  xTaskCreatePinnedToCore(HallSpeedTask, "HallSpeedTask", 10000, nullptr, 1, nullptr,  0); 
+  //xTaskCreatePinnedToCore(IMUTask, "IMUTask", 10000, nullptr, 1, nullptr,  0); 
+  xTaskCreatePinnedToCore(CompassTask, "CompassTask", 10000, nullptr, 1, nullptr,  0); 
+  xTaskCreatePinnedToCore(SteeringMotorTask_l298n, "SteeringMotorTask", 10000, nullptr, 1, nullptr,  1); 
+  xTaskCreatePinnedToCore(DriveMotorTask, "DriveMotorTask", 10000, nullptr, 1, nullptr,  1); 
+  xTaskCreatePinnedToCore(HallSpeedTask, "HallSpeedTask", 10000, nullptr, 1, nullptr,  1); 
 }
 
 void loop() {

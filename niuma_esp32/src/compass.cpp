@@ -1,10 +1,10 @@
 #include <Arduino.h>
 #include "debug.hpp"
-#include <HMC5883L.h>
+#include "DFRobot_QMC5883/DFRobot_QMC5883.h"
 void setupCompass(void);
 void readCompass(void);
 
-HMC5883L compass;
+DFRobot_QMC5883 compass;
 
 
 
@@ -21,20 +21,23 @@ void CompassTask( void * parameter) {
 #include <Wire.h>
 
 void setupCompass(void) {
-  TwoWire selfWire(1);
-  auto goodWire = selfWire.begin(GPIO_NUM_21,GPIO_NUM_22,400000);
+  auto goodWire = Wire.begin();
   LOG_I(goodWire);
-  /*
-  auto goodWire = Wire.begin(GPIO_NUM_21,GPIO_NUM_22,400000);
-  LOG_I(goodWire);
-  compass.initCompass();
-  auto id = compass.getCompass();
-  LOG_I(id);
-  */
+  while (!compass.begin()){
+    Serial.println("Could not find a valid QMC5883 sensor, check wiring!");
+    delay(500);
+  }
+
+  LOG_I(compass.isHMC());
+  LOG_I(compass.isQMC());
+  LOG_I(compass.isVCM());
 }
 
 static const long constReadImuIntervalMS = 16;
 
+extern volatile float magnetX;
+extern volatile float magnetY;
+extern volatile float magnetZ;
 
 void readCompass(void) {
   static long previousMillis = 0;
@@ -43,10 +46,12 @@ void readCompass(void) {
     return;
   }
   previousMillis = nowMS;
-  //auto magnet = compass.readRawAxis();
+  auto magnet = compass.readRaw();
   //LOG_I(magnet.XAxis);
   //LOG_I(magnet.YAxis);
   //LOG_I(magnet.ZAxis);
-  //auto magnet = compass.readScaledAxis();
+  magnetX = magnet.XAxis ;
+  magnetY = magnet.YAxis ;
+  magnetZ = magnet.ZAxis;
 }
 
