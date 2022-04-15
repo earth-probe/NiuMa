@@ -27,7 +27,6 @@ void setupCompass(void) {
     Serial.println("Could not find a valid QMC5883 sensor, check wiring!");
     delay(500);
   }
-
   LOG_I(compass.isHMC());
   LOG_I(compass.isQMC());
   LOG_I(compass.isVCM());
