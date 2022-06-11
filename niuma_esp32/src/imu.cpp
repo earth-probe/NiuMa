@@ -22,7 +22,7 @@ LSM9DS1 imu;
 #define LSM9DS1_M 0x1C
 #define LSM9DS1_AG 0x6A 
 void setupIMU(void) {
-  auto goodWire = Wire.begin();
+  auto goodWire = Wire.begin(SDA,SCL,100*1000);
   LOG_I(goodWire);
   auto isGoodImu = imu.begin(LSM9DS1_AG, LSM9DS1_M, Wire);
   //auto isGoodImu = imu.begin();
