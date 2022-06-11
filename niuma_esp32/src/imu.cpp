@@ -21,10 +21,14 @@ void IMUTask( void * parameter) {
 LSM9DS1 imu;
 #define LSM9DS1_M 0x1C
 #define LSM9DS1_AG 0x6A 
+static const int I2C_SDA = 35; 
+static const int I2C_SCL = 34;
+TwoWire I2CImu = TwoWire(1);
+
 void setupIMU(void) {
-  auto goodWire = Wire.begin(SDA,SCL,100*1000);
+  auto goodWire = I2CImu.begin(I2C_SDA,I2C_SCL);
   LOG_I(goodWire);
-  auto isGoodImu = imu.begin(LSM9DS1_AG, LSM9DS1_M, Wire);
+  auto isGoodImu = imu.begin(LSM9DS1_AG, LSM9DS1_M, I2CImu);
   //auto isGoodImu = imu.begin();
   LOG_I(isGoodImu);
   imu.calibrateMag();
